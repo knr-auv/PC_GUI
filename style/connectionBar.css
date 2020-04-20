@@ -1,0 +1,30 @@
+QWidget {
+    color: white;
+    font: 12px 'Roboto'
+}
+
+QLineEdit {
+    background: rgb(187,198,241);
+    color: black;
+    border: 1px solid white;
+}
+QTextBrowser {
+    color: black
+}
+QPushButton#b_connect {
+    border: 1px solid rgb(125, 200, 255);
+    padding: 0px;
+    border-radius: 5px;
+    font-weight: 300;
+    color: white;
+    background-color: rgb(107, 215, 106);
+    width: 75px;
+    height: 20px
+}
+    QPushButton#b_connect:hover {
+        border: 1px solid rgb(107, 215, 106);
+        background-color: rgb(125, 200, 255);
+    }
+ QPushButton#b_connect:pressed{
+     background-color: green;
+ }
