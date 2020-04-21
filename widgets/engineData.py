@@ -14,7 +14,7 @@ class engineData(QtWidgets.QWidget):
         self.pwm=["","","","",""]
 
         # just for test (random number) !!!!!!!!!!!!!!
-        pwm=[12,35,47,90,60]
+        pwm=[12,35,47,90,100]
         self.update(pwm)
 
         for n in range(len(self.engines)):
@@ -35,25 +35,20 @@ class engineData(QtWidgets.QWidget):
 
         #engine numbering
         #engine0
-        self.draw_engine_line(50,155,90,155)
-        self.model_text(33,160,0)
-        self.progressbar(5, 175, int(self.pwm[0]))
+        self.model_text(5,168,"engine 0:")
+        self.progressbar(1, 175, int(self.pwm[0]))
         #engine1
-        self.draw_engine_line(310,155,350,155)
-        self.model_text(355,160,1)
-        self.progressbar(328,175, int(self.pwm[1]))
+        self.model_text(335,168,"engine 1:")
+        self.progressbar(330,175, int(self.pwm[1]))
         #engine 2
-        self.draw_engine_line(65,48,110,105)
-        self.model_text(50,50,2)
-        self.progressbar(5, 70, int(self.pwm[2]))
+        self.model_text(5,63,"engine 2:")
+        self.progressbar(1, 70, int(self.pwm[2]))
         #engine 3
-        self.draw_engine_line(200,370,250,370)
-        self.model_text(260,380,3)
-        self.progressbar(280, 365, int(self.pwm[3]))
+        self.model_text(235,363,"engine 3:")
+        self.progressbar(230, 370, int(self.pwm[3]))
         #engine4
-        self.draw_engine_line(290,105,335,48)
-        self.model_text(340,53,4)
-        self.progressbar(328,70,int(self.pwm[4]))
+        self.model_text(335,63,"engine :4")
+        self.progressbar(330,70,int(self.pwm[4]))
 
     def draw_engine_line(self,x1,y1,x2,y2):
         painter=QtGui.QPainter(self.model.pixmap())
@@ -68,11 +63,11 @@ class engineData(QtWidgets.QWidget):
         painter = QtGui.QPainter(self.model.pixmap())
         pen=QtGui.QPen()
         pen.setWidth(1)
-        pen.setColor(QtGui.QColor("red"))
+        pen.setColor(QtGui.QColor("black"))
         painter.setPen(pen)
         font=QtGui.QFont()
         font.setFamily("Times")
-        font.setPointSize(20)
+        font.setPointSize(12)
         painter.setFont(font)
         painter.drawText(x,y,str(label))
         painter.end()
