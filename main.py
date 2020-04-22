@@ -1,5 +1,7 @@
 import sys, struct
 from PyQt5 import QtWidgets, uic, QtGui, QtCore
+
+
 from mainwindow import Ui_MainWindow
 from connectionHandler import *
 
@@ -11,7 +13,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def __init__(self):
         super(MainWindow,self).__init__()
         self.setupUi(self)
+        
         self.setStyleSheet(open('style/mainWindow.css').read())
+        self.setWindowIcon(QtGui.QIcon('img/KNR_logo.png'))
         self.serverRunning = False
         self.connectButtons()
         self.engineData.update([1,1,1,1,1])
@@ -31,8 +35,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.server = connectionHandler(addr)
         self.server.moveToThread(self.serverThread)
         self.serverThread.started.connect(self.server.run)
-        self.server.serverStarted.connect(lambda data: self.connectionBar.l_connection.setText(("server listening on: " + str(data))))
-        self.server.clientConnected.connect(self.clientHandler)
+        self.server.connectionInfo.connect(self.connectionBar.display)
+        self.server.clientConnected.connect(lambda: self.server.dataReceived.connect(self.updateWidgets))
         self.server.connectionTerminated.connect(self.server.dataReceived.disconnect)
         self.serverThread.finished.connect(self.serverThread.deleteLater)
         self.serverThread.start()
@@ -43,9 +47,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.server.stop()            
         self.serverThread.quit()
 
-    def clientHandler(self,data):
-        self.connectionBar.l_connection.setText("client connected: " + str(data))
-        self.server.dataReceived.connect(self.updateWidgets)
+    
+        
+        
        
     def manageConnection(self):
         if not self.serverRunning:
@@ -56,7 +60,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
 
     def updateWidgets(self, data):
-        self.connectionBar.update(len(data))
+        #self.connectionBar.update(len(data))
+        
         pwm = struct.unpack('iiiii',data) 
         self.engineData.update(list(pwm))
 
