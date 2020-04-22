@@ -28,7 +28,7 @@ class engineData(QtWidgets.QWidget):
         self.mainlayout.addLayout(self.pwmlayout)
 
         self.model=QtWidgets.QLabel()
-        self.model.setPixmap(QtGui.QPixmap("./Widgets/engines.jpg"))
+        self.model.setPixmap(QtGui.QPixmap("./img/engines.jpg"))
         self.model.setScaledContents(True)
         self.mainlayout.addWidget(self.model)
         self.setLayout(self.mainlayout)
