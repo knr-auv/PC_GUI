@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'UiFiles/connectionBar.ui'
+# Form implementation generated from reading ui file '.\UiFiles\connectionBar.ui'
 #
 # Created by: PyQt5 UI code generator 5.13.2
 #
@@ -13,19 +13,38 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_connectionBar(object):
     def setupUi(self, connectionBar):
         connectionBar.setObjectName("connectionBar")
-        connectionBar.resize(674, 102)
+        connectionBar.resize(984, 70)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(connectionBar.sizePolicy().hasHeightForWidth())
+        connectionBar.setSizePolicy(sizePolicy)
+        connectionBar.setMinimumSize(QtCore.QSize(0, 0))
+        connectionBar.setMaximumSize(QtCore.QSize(16777215, 16777215))
         connectionBar.setStyleSheet("")
         self.horizontalLayout = QtWidgets.QHBoxLayout(connectionBar)
-        self.horizontalLayout.setContentsMargins(-1, 0, -1, 0)
-        self.horizontalLayout.setSpacing(6)
+        self.horizontalLayout.setSizeConstraint(QtWidgets.QLayout.SetDefaultConstraint)
+        self.horizontalLayout.setContentsMargins(-1, 9, -1, 9)
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.l_connection = QtWidgets.QLabel(connectionBar)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.l_connection.sizePolicy().hasHeightForWidth())
+        self.l_connection.setSizePolicy(sizePolicy)
         font = QtGui.QFont()
         font.setPointSize(10)
         self.l_connection.setFont(font)
+        self.l_connection.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
         self.l_connection.setObjectName("l_connection")
         self.horizontalLayout.addWidget(self.l_connection)
         self.l_ip = QtWidgets.QLabel(connectionBar)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.l_ip.sizePolicy().hasHeightForWidth())
+        self.l_ip.setSizePolicy(sizePolicy)
+        self.l_ip.setMinimumSize(QtCore.QSize(0, 0))
         font = QtGui.QFont()
         font.setPointSize(8)
         self.l_ip.setFont(font)
@@ -34,7 +53,7 @@ class Ui_connectionBar(object):
         self.horizontalLayout.addWidget(self.l_ip)
         self.ip_text = QtWidgets.QLineEdit(connectionBar)
         self.ip_text.setEnabled(True)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Maximum, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.ip_text.sizePolicy().hasHeightForWidth())
@@ -49,7 +68,7 @@ class Ui_connectionBar(object):
         self.ip_text.setObjectName("ip_text")
         self.horizontalLayout.addWidget(self.ip_text)
         self.b_connect = QtWidgets.QPushButton(connectionBar)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Maximum, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.b_connect.sizePolicy().hasHeightForWidth())
