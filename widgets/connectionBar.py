@@ -9,6 +9,9 @@ class connectionBar(QtWidgets.QWidget,Ui_connectionBar):
     def __init__(self,parent=None):
        QtWidgets.QWidget.__init__(self,parent)
        self.setupUi(self)       
+       self.timer = QtCore.QTimer(self)
+       
+       
        
 
 #now you can add labels stylesheets... whatever you need
@@ -20,8 +23,8 @@ class connectionBar(QtWidgets.QWidget,Ui_connectionBar):
                 self.b_connect.setText("Disconnect")
                 self.ip_text.hide()
                 self.l_ip.hide()
-                self.l_connection.setAlignment(QtCore.Qt.AlignTop)
-                self.l_connection.setText("Starting server")
+                #self.l_connection.setAlignment(QtCore.Qt.AlignTop)
+                
 
                 
             else:
@@ -29,10 +32,18 @@ class connectionBar(QtWidgets.QWidget,Ui_connectionBar):
                 self.l_ip.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
                 self.ip_text.show()
 
+    def display(self, data):
+        self.timer.setSingleShot(True)
+        self.timer.start(5000)
+        self.timer.timeout.connect(lambda: self.l_connection.setText(""))    
+        
+        self.l_connection.setText(data)
+
     def update(self, humidity):
         val ="humidity: "
         val+=str(humidity)
         self.l_connection.setText(val)
+
     def getAddr(self):
         val = self.ip_text.text()
         try:
@@ -42,6 +53,7 @@ class connectionBar(QtWidgets.QWidget,Ui_connectionBar):
         except IndexError:
             return None
         return (host, port)
+
 #just provide data, and attach this function to send button
     def send(self, data=()):
         self.sendData.emit(data)

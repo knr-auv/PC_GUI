@@ -13,8 +13,8 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_connectionBar(object):
     def setupUi(self, connectionBar):
         connectionBar.setObjectName("connectionBar")
-        connectionBar.resize(984, 174)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Maximum)
+        connectionBar.resize(984, 70)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(connectionBar.sizePolicy().hasHeightForWidth())
@@ -24,7 +24,7 @@ class Ui_connectionBar(object):
         connectionBar.setStyleSheet("")
         self.horizontalLayout = QtWidgets.QHBoxLayout(connectionBar)
         self.horizontalLayout.setSizeConstraint(QtWidgets.QLayout.SetDefaultConstraint)
-        self.horizontalLayout.setContentsMargins(-1, -1, -1, 9)
+        self.horizontalLayout.setContentsMargins(-1, 9, -1, 9)
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.l_connection = QtWidgets.QLabel(connectionBar)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
