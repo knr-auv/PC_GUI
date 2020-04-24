@@ -16,7 +16,7 @@ class connectionBar(QtWidgets.QWidget,Ui_connectionBar):
 
 #now you can add labels stylesheets... whatever you need
        self.b_connect.pressed.connect(self.b_connectAction)         
-       self.setStyleSheet(open('./style/connectionBar.css').read())
+       #self.setStyleSheet(open('./style/connectionBar.css').read())
 
     def b_connectAction(self):
             if self.b_connect.text()=="Connect":

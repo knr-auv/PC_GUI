@@ -13,12 +13,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def __init__(self):
         super(MainWindow,self).__init__()
         self.setupUi(self)
-        
-        self.setStyleSheet(open('style/mainWindow.css').read())
+       
+        #self.setStyleSheet(open('style/mainWindow.css').read())
         self.setWindowIcon(QtGui.QIcon('img/KNR_logo.png'))
         self.serverRunning = False
         self.connectButtons()
-        self.engineData.update([1,1,1,1,1])
+        
 
 
     def connectButtons(self):
@@ -46,6 +46,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.serverRunning = False
         self.server.stop()            
         self.serverThread.quit()
+       
 
     
         

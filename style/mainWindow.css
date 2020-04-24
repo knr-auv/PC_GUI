@@ -1,7 +1,6 @@
-
-
-
-
+QWidget {
+    font: 12px 'Roboto'
+}
 QMainWindow {
     background-color: rgb(93, 107, 153);
 }
