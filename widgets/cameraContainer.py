@@ -55,9 +55,9 @@ class StreamClient(QtCore.QThread):
 
 
 
-class camerContainer(QtWidgets.QWidget, Ui_cameraContainer):
-    def __init__(self):
-        super(camerContainer, self).__init__()
+class cameraContainer(QtWidgets.QWidget, Ui_cameraContainer):
+    def __init__(self,parent=None):
+        QtWidgets.QWidget.__init__(self,parent)
         self.setupUi(self)
         self.connectButton.clicked.connect(self.start_client)
         self.framelabel.setScaledContents(True)
