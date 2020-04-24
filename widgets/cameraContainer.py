@@ -5,6 +5,8 @@ import cv2
 import pickle
 import struct
 import logging
+import time
+import numpy as np
 from cameraContainer_ui import Ui_cameraContainer
 
 
@@ -54,6 +56,51 @@ class StreamClient(QtCore.QThread):
         return cv2.imdecode(frame, cv2.IMREAD_COLOR)
 
 
+class SimulationClient(QtCore.QThread):
+    """Klasa Tworzy clienta do odbierania ramek zdjec z symulacji"""
+    def __init__(self, port=44209, ip='localhost'):
+        super(SimulationClient, self).__init__()
+        """Inicjalizacja socekta """
+        self.port = port
+        self.ip = ip
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        logging.debug("Socket connect port:{}".format(port))
+        self.data = b""
+        self.frame = None
+
+    def run(self):
+        self.socket.connect((self.ip, self.port))
+        time.sleep(1)
+        while True:
+            try:
+                self.frame = self.recive_frame()
+            except e:
+                print(e)
+                pass
+
+    def stop(self):
+        self.socket.close()
+
+    def __del__(self):
+        self.socket.close()
+
+    """Metdoa zwraca klatke OpenCV uzyskana z Symulacji"""
+    def recive_frame(self):
+        self.data = b""
+        self.socket.send(b"\x69")
+        confirm = self.socket.recv(1)
+        if not(confirm == b"\x69"):
+            logging.debug("Message error")
+        lenght = self.socket.recv(4)
+        lenght = struct.unpack('<I', lenght)[0]
+        while not(len(self.data) >= lenght):
+            self.data += self.socket.recv(4096)
+        self.data = np.fromstring(self.data, np.uint8)
+        return cv2.imdecode(self.data, cv2.IMREAD_COLOR)
+
+
+
+
 
 class camerContainer(QtWidgets.QWidget, Ui_cameraContainer):
     def __init__(self):
@@ -62,7 +109,7 @@ class camerContainer(QtWidgets.QWidget, Ui_cameraContainer):
         self.connectButton.clicked.connect(self.start_client)
         self.framelabel.setScaledContents(True)
         self.capture = None
-        self.timer = QtCore.QTimer(self, interval=5)
+        self.timer = QtCore.QTimer(self, interval=1)
         self.timer.timeout.connect(self.update_frame)
         self._image_counter = 0
         self.client = None
@@ -71,7 +118,7 @@ class camerContainer(QtWidgets.QWidget, Ui_cameraContainer):
     def start_client(self):
         ip, port = self.clientData.displayText().split(":")
         if self.client is None:
-            self.client = StreamClient(str(ip), int(port))
+            self.client = SimulationClient(ip=str(ip), port=int(port))
             self.client.start()
             self.timer.start()
             self.connectButton.setText("Disconnect")
