@@ -36,8 +36,8 @@ class Ui_cameraContainer(object):
     def retranslateUi(self, Form):
         _translate = QtCore.QCoreApplication.translate
         Form.setWindowTitle(_translate("Form", "Form"))
-        self.framelabel.setText(_translate("Form", "framelabel"))
-        self.clientData.setText(_translate("Form", "127.0.0.1:8485"))
+        self.framelabel.setText(_translate("Form", ""))
+        self.clientData.setText(_translate("Form", "127.0.0.1:44209"))
         self.connectButton.setText(_translate("Form", "Connect"))
 
 # if __name__ == "__main__":
