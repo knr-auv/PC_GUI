@@ -1,31 +1,54 @@
-import asyncio,socket
+import asyncio,socket, struct
 from PyQt5 import QtCore
 
+HEADER = 0
+DATA = 1
+
 class connectionHandler(QtCore.QObject):
+    
     connectionInfo = QtCore.pyqtSignal(object)
-   
     connectionTerminated = QtCore.pyqtSignal()
     clientConnected = QtCore.pyqtSignal()
     dataReceived = QtCore.pyqtSignal(object)
+    
+    rx_state = HEADER
+    tx_ready = True
+    tx_buff = []
+    
+    
 
     def __init__(self, addr):
         super(connectionHandler, self).__init__()
-
         self.host = addr[0]
         self.port = addr[1]
         self.active = True
 
+
     async def clientHandler(self, reader,writer):
         self.clientConnected.emit()
         self.connectionInfo.emit(("Connected with: "+ str(writer.get_extra_info('peername'))))
-        
+        rx_len = 0
         try:
             while self.active:
-                data = await reader.read(100)
-                if not data == b'':
-                    self.dataReceived.emit(data)
+                if len(self.tx_buff)!=0 and self.tx_ready==True:
+                    self.tx_ready= False
+                    writer.write(self.tx_buff.pop(0))
+                    await writer.drain()
+                    self.tx_ready=True
+                if(self.rx_state == HEADER):
+                    data = await reader.read(4)
+                    rx_len = struct.unpack(">L",data)
+                    self.rx_state = DATA
                 else:
-                    break
+                    try:
+                        data = await reader.readexactly(rx_len)
+                        self.rx_state = HEADER
+                        self.dataReceived.emit(data)
+
+                    except IncompleteReadError:
+                        self.connectionInfo.emit("Message was corrupted")
+                        self.rx_state = HEADER
+
         except ConnectionResetError:
             self.connectionTerminated.emit()
             self.connectionInfo.emit("Client disconnected")
@@ -43,6 +66,7 @@ class connectionHandler(QtCore.QObject):
         return
 
     async def serverHandler(self):
+
         self.server = await asyncio.start_server(self.clientHandler, self.host, self.port, family = socket.AF_INET, flags = socket.SOCK_STREAM)
         self.connectionInfo.emit("Server is listening: " + str(self.host)+":"+str(self.port))
         
@@ -57,7 +81,7 @@ class connectionHandler(QtCore.QObject):
             
 
 
-           
+    
     def run(self):
         asyncio.run(self.serverHandler())
 
@@ -65,8 +89,13 @@ class connectionHandler(QtCore.QObject):
         self.server.close()
         if self.server.is_serving():
             print("Server is runnig --> we have a problem")
-       
+    
         
             
-       
+    def send(self, data):
+        #protecting buffer 
+        self.tx_ready = False
+        self.tx_buff.append(data)
+        self.tx_ready = True
+
    
