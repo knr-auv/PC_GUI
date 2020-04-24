@@ -8,9 +8,9 @@ class connectionHandler(QtCore.QObject):
     
     connectionInfo = QtCore.pyqtSignal(object)
     connectionTerminated = QtCore.pyqtSignal()
-    clientConnected = QtCore.pyqtSignal(object)
+    clientConnected = QtCore.pyqtSignal()
     dataReceived = QtCore.pyqtSignal(object)
-    videoReceived = QtCore.pyqtSignal(object)
+   
     
     rx_state = HEADER
     tx_ready = True
@@ -22,7 +22,12 @@ class connectionHandler(QtCore.QObject):
         self.port = addr[1]
         self.active = True
 
-    async def odroid(self, reader, writer):
+    
+
+    async def clientHandler(self, reader,writer):
+        self.clientConnected.emit()
+        self.connectionInfo.emit(("Connected with: "+ str(writer.get_extra_info('peername'))))
+        
         rx_len = 0
         try:
             while self.active:
@@ -55,22 +60,6 @@ class connectionHandler(QtCore.QObject):
         return
 
 
-    async def jetson(self, reader, writer):
-        pass
-
-
-    async def clientHandler(self, reader,writer):
-        
-        self.connectionInfo.emit(("Connected with: "+ str(writer.get_extra_info('peername'))))
-        client = await reader.read()
-        if client == b'odroid':
-            self.clientConnected.emit(client)
-            self.odroid(reader,writer)
-        elif client == b'jetson':
-            self.clientConnected.emit(client)
-            self.jetson(reader,writer)
-        else:
-            self.connectionInfo.emit("unexpected client")
 
     async def serverHandler(self):
 
