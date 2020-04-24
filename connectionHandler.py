@@ -99,10 +99,18 @@ class connectionHandler(QtCore.QObject):
     
         
             
-    def send(self, data):
+    def _send(self, data):
         #protecting buffer 
         self.tx_ready = False
         self.tx_buff.append(data)
         self.tx_ready = True
 
-   
+class parser():
+
+     def send(self, data):
+         pass
+
+     def sendPids(P, I, D):
+         tx_buffer = [0, P,I,D]
+         tx_buffer = struct.pack('<2i3f', *([4+len(tx_buffer)]+tx_buffer))
+         self.send(tx_buffer)

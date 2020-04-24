@@ -58,8 +58,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         elif data == 'jetson':
             self.server.videoReceived.connect(self.updateStream)
 
-    def updateStream(self,data):
+    def updateStream(self,frame):
         pass
+
     def updateWidgets(self, data):
         pwm = struct.unpack('iiiii',data) 
         self.engineData.update(list(pwm))
