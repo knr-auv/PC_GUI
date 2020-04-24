@@ -12,17 +12,6 @@ class engineData(QtWidgets.QWidget):
         # just for test (random number) !!!!!!!!!!!!!!
         self.pwm=[10,10,10,10,10]
 
-        #enginel=""
-        #pwml=""
-        #for i in range(len(self.engines)):
-        #    enginel=enginel+self.engines[i]+"       "
-        #    pwml=pwml+"PWM:"+str(self.pwm[i])+"%"+"   "
-
-        #self.enginelabel=QtWidgets.QLabel(enginel)
-        #self.pwmlabel=QtWidgets.QLabel(pwml)
-        #self.mainlayout.addWidget(self.enginelabel)
-        #self.mainlayout.addWidget(self.pwmlabel)
-
         self.labele1=QtWidgets.QLabel(str(self.engines[0]))
         self.labele2=QtWidgets.QLabel(str(self.engines[1]))
         self.labele3=QtWidgets.QLabel(str(self.engines[2]))
