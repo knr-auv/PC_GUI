@@ -1,0 +1,14 @@
+QFrame QFrame#container {
+    border: 2px solid red;
+}
+QFrame#data_frame QLabel {
+    border: 1px solid black;
+    color: red;
+    padding: 0.1em;
+    margin: 0.1em;
+    qproperty-alignment: AlignCenter AlignVCenter;
+}
+    
+QFrame#label_frame QLabel {
+    color: green
+}

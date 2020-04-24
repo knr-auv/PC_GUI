@@ -5,7 +5,7 @@ import cv2
 import pickle
 import struct
 import logging
-from cameraContainer_ui import Ui_cameraContainer
+from .cameraContainer_ui import Ui_cameraContainer
 
 
 class StreamClient(QtCore.QThread):
