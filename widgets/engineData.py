@@ -1,4 +1,3 @@
-
 from PyQt5 import QtWidgets,QtGui,QtCore
 
 class engineData(QtWidgets.QWidget):
@@ -8,21 +7,34 @@ class engineData(QtWidgets.QWidget):
 
         self.mainlayout = QtWidgets.QVBoxLayout()
         self.englayout=QtWidgets.QHBoxLayout()
-        self.pwmlayout = QtWidgets.QHBoxLayout()
-
+        self.pwmlayout=QtWidgets.QHBoxLayout()
         self.engines=["engine 0:","engine 1:","engine 2:","engine 3:","engine 4:"]
-        self.pwm=["","","","",""]
-
         # just for test (random number) !!!!!!!!!!!!!!
-        pwm=[12,35,47,90,100]
-        self.update(pwm)
+        self.pwm=[10,10,10,10,10]
 
-        for n in range(len(self.engines)):
-            label=QtWidgets.QLabel(str(self.engines[n]))
-            pom="PWM: "+str(self.pwm[n])+"%"
-            pwmlabel=QtWidgets.QLabel(pom)
-            self.pwmlayout.addWidget((pwmlabel))
-            self.englayout.addWidget(label)
+        self.labele1=QtWidgets.QLabel(str(self.engines[0]))
+        self.labele2=QtWidgets.QLabel(str(self.engines[1]))
+        self.labele3=QtWidgets.QLabel(str(self.engines[2]))
+        self.labele4=QtWidgets.QLabel(str(self.engines[3]))
+        self.labele5=QtWidgets.QLabel(str(self.engines[4]))
+
+        self.englayout.addWidget(self.labele1)
+        self.englayout.addWidget(self.labele2)
+        self.englayout.addWidget(self.labele3)
+        self.englayout.addWidget(self.labele4)
+        self.englayout.addWidget(self.labele5)
+
+        self.labelp1=QtWidgets.QLabel("PWM: "+str(self.pwm[0])+"%")
+        self.labelp2 = QtWidgets.QLabel("PWM: " + str(self.pwm[1]) + "%")
+        self.labelp3 = QtWidgets.QLabel("PWM: " + str(self.pwm[2]) + "%")
+        self.labelp4 = QtWidgets.QLabel("PWM: " + str(self.pwm[3]) + "%")
+        self.labelp5 = QtWidgets.QLabel("PWM: " + str(self.pwm[4]) + "%")
+
+        self.pwmlayout.addWidget(self.labelp1)
+        self.pwmlayout.addWidget(self.labelp2)
+        self.pwmlayout.addWidget(self.labelp3)
+        self.pwmlayout.addWidget(self.labelp4)
+        self.pwmlayout.addWidget(self.labelp5)
 
         self.mainlayout.addLayout(self.englayout)
         self.mainlayout.addLayout(self.pwmlayout)
@@ -49,6 +61,7 @@ class engineData(QtWidgets.QWidget):
         #engine4
         self.model_text(335,63,"engine :4")
         self.progressbar(330,70,int(self.pwm[4]))
+
 
     def draw_engine_line(self,x1,y1,x2,y2):
         painter=QtGui.QPainter(self.model.pixmap())
@@ -94,14 +107,54 @@ class engineData(QtWidgets.QWidget):
         painter.fillRect(rect, brush)
         painter.end()
 
+    def clearLayout(self,layout):
+        while layout.count():
+            child = layout.takeAt(0)
+            if child.widget():
+                child.widget().deleteLater()
+
+    def setprogress(self,pwm):
+        self.model.deleteLater()
+        self.clearLayout(self.pwmlayout)
+        self.labelp1 = QtWidgets.QLabel("PWM: " + str(self.pwm[0]) + "%")
+        self.labelp2 = QtWidgets.QLabel("PWM: " + str(self.pwm[1]) + "%")
+        self.labelp3 = QtWidgets.QLabel("PWM: " + str(self.pwm[2]) + "%")
+        self.labelp4 = QtWidgets.QLabel("PWM: " + str(self.pwm[3]) + "%")
+        self.labelp5 = QtWidgets.QLabel("PWM: " + str(self.pwm[4]) + "%")
+        self.pwmlayout.addWidget(self.labelp1)
+        self.pwmlayout.addWidget(self.labelp2)
+        self.pwmlayout.addWidget(self.labelp3)
+        self.pwmlayout.addWidget(self.labelp4)
+        self.pwmlayout.addWidget(self.labelp5)
+        self.mainlayout.removeItem(self.pwmlayout)
+        self.mainlayout.addLayout(self.pwmlayout)
+        self.model = QtWidgets.QLabel()
+        self.model.setPixmap(QtGui.QPixmap("./engines.jpg"))
+        self.model.setScaledContents(True)
+        self.mainlayout.addWidget(self.model)
+        self.setLayout(self.mainlayout)
+        # engine numbering
+        # engine0
+        self.model_text(5, 168, "engine 0:")
+        self.progressbar(1, 175, int(self.pwm[0]))
+        # engine1
+        self.model_text(335, 168, "engine 1:")
+        self.progressbar(330, 175, int(self.pwm[1]))
+        # engine 2
+        self.model_text(5, 63, "engine 2:")
+        self.progressbar(1, 70, int(self.pwm[2]))
+        # engine 3
+        self.model_text(235, 363, "engine 3:")
+        self.progressbar(230, 370, int(self.pwm[3]))
+        # engine4
+        self.model_text(335, 63, "engine :4")
+        self.progressbar(330, 70, int(self.pwm[4]))
+
     def update(self,pwm):  ## variable pwm must be a list of filling individual PWM
         #sequence must be the same as the setting of the engines in the picture
-        for i in range(5):
-            self.pwm[i]+=str(pwm[i])
-
-   
-
-
+        for i in range(len(self.pwm)):
+            self.pwm[i]=pwm[i]
+        self.setprogress(self.pwm)
 
 #import sys
 #app=QtWidgets.QApplication(sys.argv)
