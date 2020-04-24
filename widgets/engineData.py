@@ -39,6 +39,7 @@ class engineData(QtWidgets.QWidget):
         self.mainlayout.addLayout(self.englayout)
         self.mainlayout.addLayout(self.pwmlayout)
 
+
         self.model=QtWidgets.QLabel()
         self.model.setPixmap(QtGui.QPixmap("./img/engines.jpg"))
         self.model.setScaledContents(True)
@@ -129,7 +130,7 @@ class engineData(QtWidgets.QWidget):
         self.mainlayout.removeItem(self.pwmlayout)
         self.mainlayout.addLayout(self.pwmlayout)
         self.model = QtWidgets.QLabel()
-        self.model.setPixmap(QtGui.QPixmap("./engines.jpg"))
+        self.model.setPixmap(QtGui.QPixmap("./img/engines.jpg"))
         self.model.setScaledContents(True)
         self.mainlayout.addWidget(self.model)
         self.setLayout(self.mainlayout)
