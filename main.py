@@ -36,33 +36,31 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.server.moveToThread(self.serverThread)
         self.serverThread.started.connect(self.server.run)
         self.server.connectionInfo.connect(self.connectionBar.display)
-        self.server.clientConnected.connect(lambda: self.server.dataReceived.connect(self.updateWidgets))
+        self.server.clientConnected.connect(self.manageClients)
         self.server.connectionTerminated.connect(self.server.dataReceived.disconnect)
         self.serverThread.finished.connect(self.serverThread.deleteLater)
         self.serverThread.start()
 
-    #stoping server
     def stopConnection(self):
         self.serverRunning = False
         self.server.stop()            
         self.serverThread.quit()
-       
-
-    
-        
-        
-       
+   
     def manageConnection(self):
         if not self.serverRunning:
             self.startConnection()
         else:
             self.stopConnection()
-            
+           
+    def manageClients(self, data):
+        if data == 'odroid':
+            self.server.dataReceived.connect(self.updateWidgets)
+        elif data == 'jetson':
+            self.server.videoReceived.connect(self.updateStream)
 
-
+    def updateStream(self,data):
+        pass
     def updateWidgets(self, data):
-        #self.connectionBar.update(len(data))
-        
         pwm = struct.unpack('iiiii',data) 
         self.engineData.update(list(pwm))
 

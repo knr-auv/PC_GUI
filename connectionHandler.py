@@ -8,25 +8,21 @@ class connectionHandler(QtCore.QObject):
     
     connectionInfo = QtCore.pyqtSignal(object)
     connectionTerminated = QtCore.pyqtSignal()
-    clientConnected = QtCore.pyqtSignal()
+    clientConnected = QtCore.pyqtSignal(object)
     dataReceived = QtCore.pyqtSignal(object)
+    videoReceived = QtCore.pyqtSignal(object)
     
     rx_state = HEADER
     tx_ready = True
     tx_buff = []
     
-    
-
     def __init__(self, addr):
         super(connectionHandler, self).__init__()
         self.host = addr[0]
         self.port = addr[1]
         self.active = True
 
-
-    async def clientHandler(self, reader,writer):
-        self.clientConnected.emit()
-        self.connectionInfo.emit(("Connected with: "+ str(writer.get_extra_info('peername'))))
+    async def odroid(self, reader, writer):
         rx_len = 0
         try:
             while self.active:
@@ -45,7 +41,6 @@ class connectionHandler(QtCore.QObject):
                         data = await reader.readexactly(rx_len[0])
                         self.rx_state = HEADER
                         self.dataReceived.emit(data)
-
                     except asyncio.IncompleteReadError:
                         self.connectionInfo.emit("Message was corrupted")
                         self.rx_state = HEADER
@@ -55,16 +50,27 @@ class connectionHandler(QtCore.QObject):
             self.connectionInfo.emit("Client disconnected")
             return
 
-
-           
-            
-        #writer.write(data)
-        #await writer.drain()
-        
         writer.close()
-        
         await writer.wait_closed()
         return
+
+
+    async def jetson(self, reader, writer):
+        pass
+
+
+    async def clientHandler(self, reader,writer):
+        
+        self.connectionInfo.emit(("Connected with: "+ str(writer.get_extra_info('peername'))))
+        client = await reader.read()
+        if client == b'odroid':
+            self.clientConnected.emit(client)
+            self.odroid(reader,writer)
+        elif client == b'jetson':
+            self.clientConnected.emit(client)
+            self.jetson(reader,writer)
+        else:
+            self.connectionInfo.emit("unexpected client")
 
     async def serverHandler(self):
 
