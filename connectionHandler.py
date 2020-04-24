@@ -35,17 +35,18 @@ class connectionHandler(QtCore.QObject):
                     writer.write(self.tx_buff.pop(0))
                     await writer.drain()
                     self.tx_ready=True
+                print("abc")
                 if(self.rx_state == HEADER):
                     data = await reader.read(4)
                     rx_len = struct.unpack(">L",data)
                     self.rx_state = DATA
                 else:
                     try:
-                        data = await reader.readexactly(rx_len)
+                        data = await reader.readexactly(rx_len[0])
                         self.rx_state = HEADER
                         self.dataReceived.emit(data)
 
-                    except IncompleteReadError:
+                    except asyncio.IncompleteReadError:
                         self.connectionInfo.emit("Message was corrupted")
                         self.rx_state = HEADER
 
