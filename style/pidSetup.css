@@ -1,0 +1,40 @@
+QPushButton {
+    border: 1px solid rgb(125, 200, 255);
+    padding: 0px;
+    border-radius: 5px;
+    font-weight: 300;
+    color: white;
+    background-color: rgb(107, 215, 106);
+    width: 75px;
+    height: 20px
+}
+QPushButton:hover {
+    border: 1px solid rgb(107, 215, 106);
+    background-color: rgb(125, 200, 255);
+}
+QPushButton:pressed{
+ background-color: green;
+}
+
+QWidget {
+    color: white;
+    font: 12px 'Roboto'; /*roboto*/
+
+}
+QLineEdit {
+    background: rgb(187,198,241);
+    color: black;
+    border: 1px solid white;
+}
+QDoubleSpinBox {
+    background: rgb(187,198,241);
+    color: black;
+    border: 1px solid white;
+}
+
+
+QWidget#pidSetup {
+    background-color: rgb(93, 107, 153);
+}
+
+

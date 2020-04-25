@@ -56,7 +56,7 @@ class pidSetup(QtWidgets.QWidget, Ui_pidSetup):
         self.setupUi(self)
         self.variables_setup()
         self.connect_buttons()
-        self.setStyleSheet(open("../style/pidSetup.css").read())
+        self.setStyleSheet(open("style/pidSetup.css").read())
 
     def variables_setup(self):
         self.roll_pid=PID()
