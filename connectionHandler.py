@@ -1,8 +1,7 @@
 import asyncio,socket, struct
 from PyQt5 import QtCore
 
-HEADER = 0
-DATA = 1
+
 
 class connectionHandler(QtCore.QObject):
     
@@ -10,18 +9,18 @@ class connectionHandler(QtCore.QObject):
     connectionTerminated = QtCore.pyqtSignal()
     clientConnected = QtCore.pyqtSignal()
     dataReceived = QtCore.pyqtSignal(object)
-   
-    
-    rx_state = HEADER
-    tx_ready = True
-    tx_buff = []
+    HEADER = 0
+    DATA = 1
+  
     
     def __init__(self, addr):
         super(connectionHandler, self).__init__()
         self.host = addr[0]
         self.port = addr[1]
         self.active = True
-
+        self.rx_state = self.HEADER
+        self.tx_ready = True
+        self.tx_buff = []
     
 
     async def clientHandler(self, reader,writer):
@@ -36,19 +35,23 @@ class connectionHandler(QtCore.QObject):
                     writer.write(self.tx_buff.pop(0))
                     await writer.drain()
                     self.tx_ready=True
-                print("abc")
-                if(self.rx_state == HEADER):
-                    data = await reader.read(4)
-                    rx_len = struct.unpack(">L",data)
-                    self.rx_state = DATA
+                
+                if(self.rx_state == self.HEADER):
+                    data = await reader.readexactly(4)
+                    rx_len = struct.unpack("<L",data)[0]
+                    rx_len -= 4
+                    self.rx_state = self.DATA
                 else:
                     try:
-                        data = await reader.readexactly(rx_len[0])
-                        self.rx_state = HEADER
-                        self.dataReceived.emit(data)
+                        data = await reader.readexactly(rx_len)
+                        data = struct.unpack("<5I",data)
+                        #place for callback
+                        print(data)
+                        self.rx_state = self.HEADER
+                        
                     except asyncio.IncompleteReadError:
                         self.connectionInfo.emit("Message was corrupted")
-                        self.rx_state = HEADER
+                        self.rx_state = self.HEADER
 
         except ConnectionResetError:
             self.connectionTerminated.emit()
@@ -79,8 +82,8 @@ class connectionHandler(QtCore.QObject):
 
     
     def run(self):
-        asyncio.run(self.serverHandler())
-
+        asyncio.run(self.serverHandler(),debug =True)
+    #TODO terminate all active connection before closing
     def stop(self):
         self.server.close()
         if self.server.is_serving():
@@ -88,18 +91,17 @@ class connectionHandler(QtCore.QObject):
     
         
             
-    def _send(self, data):
+    def send(self, data):
         #protecting buffer 
         self.tx_ready = False
         self.tx_buff.append(data)
         self.tx_ready = True
 
 class parser():
+    def __init__(self, func):
+        self.send=func
 
-     def send(self, data):
-         pass
-
-     def sendPids(P, I, D):
-         tx_buffer = [0, P,I,D]
-         tx_buffer = struct.pack('<2i3f', *([4+len(tx_buffer)]+tx_buffer))
-         self.send(tx_buffer)
+    def sendPids(P, I, D):
+        tx_buffer = [0, P,I,D]
+        tx_buffer = struct.pack('<2i3f', *([4+len(tx_buffer)]+tx_buffer))
+        self.send(tx_buffer)
