@@ -97,7 +97,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_4.setObjectName("horizontalLayout_4")
         self.verticalLayout_2.addWidget(self.boatData)
         self.horizontalLayout.addWidget(self.dataBox)
-        self.cameraContainer = QtWidgets.QWidget(self.test)
+        self.cameraContainer = cameraContainer(self.test)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Ignored, QtWidgets.QSizePolicy.Ignored)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -160,6 +160,7 @@ class Ui_MainWindow(object):
         self.tabs.setTabText(self.tabs.indexOf(self.PID), _translate("MainWindow", "PID"))
         self.tabs.setTabText(self.tabs.indexOf(self.control), _translate("MainWindow", "Control"))
 from widgets.boatData import boatData
+from widgets.cameraContainer import cameraContainer
 from widgets.connectionBar import connectionBar
 from widgets.engineData import engineData
 
