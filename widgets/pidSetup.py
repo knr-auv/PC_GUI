@@ -1,7 +1,7 @@
 # This Python file uses the following encoding: utf-8
 from PyQt5 import QtCore
 from PyQt5 import QtWidgets
-from pidSetup_ui import Ui_pidSetup
+from .pidSetup_ui import Ui_pidSetup
 
 '''
 Each regulator has its own send method and send signal.
@@ -51,8 +51,8 @@ class pidSetup(QtWidgets.QWidget, Ui_pidSetup):
     send_pitch_pid=QtCore.pyqtSignal(object)
     send_yaw_pid=QtCore.pyqtSignal(object)
     
-    def __init__(self):
-        QtWidgets.QWidget.__init__(self)
+    def __init__(self,parent=None):
+        QtWidgets.QWidget.__init__(self, parent)
         self.setupUi(self)
         self.variables_setup()
         self.connect_buttons()
