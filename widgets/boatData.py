@@ -15,6 +15,6 @@ class boatData(QtWidgets.QWidget,Ui_boatData):
         
         self.hum_data.setText(str(hum))
         self.grasper_data.setText("not connected")
-        self.bat_data.setText(str(bat)+"V")
+        self.bat_data.setText("----")
         self.depth_data.setText(str(depth))
        
