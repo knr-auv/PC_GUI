@@ -45,7 +45,7 @@ class connectionHandler(QtCore.QObject):
                     try:
                         data = await reader.readexactly(rx_len)
                         data = struct.unpack("<5I",data)
-                        #place for callback
+                        self.dataReceived.emit(data)
                         print(data)
                         self.rx_state = self.HEADER
                         
