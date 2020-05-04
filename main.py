@@ -56,8 +56,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
 
     def updateWidgets(self, data):
-        pwm = struct.unpack('iiiii',data) 
-        self.engineData.update(list(pwm))
+        
+        self.engineData.update([data[0],data[1],data[2],data[3],data[4]])
+        self.boatData.update(data[0],data[1],data[2])
 
 
 def main():

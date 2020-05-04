@@ -119,7 +119,7 @@ class Ui_MainWindow(object):
         self.pidDataBox.setObjectName("pidDataBox")
         self.verticalLayout_3 = QtWidgets.QVBoxLayout(self.pidDataBox)
         self.verticalLayout_3.setObjectName("verticalLayout_3")
-        self.pidSetup = QtWidgets.QWidget(self.pidDataBox)
+        self.pidSetup = pidSetup(self.pidDataBox)
         self.pidSetup.setObjectName("pidSetup")
         self.verticalLayout_4 = QtWidgets.QVBoxLayout(self.pidSetup)
         self.verticalLayout_4.setObjectName("verticalLayout_4")
@@ -150,7 +150,7 @@ class Ui_MainWindow(object):
         MainWindow.setStatusBar(self.statusbar)
 
         self.retranslateUi(MainWindow)
-        self.tabs.setCurrentIndex(0)
+        self.tabs.setCurrentIndex(1)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
@@ -163,6 +163,7 @@ from widgets.boatData import boatData
 from widgets.cameraContainer import cameraContainer
 from widgets.connectionBar import connectionBar
 from widgets.engineData import engineData
+from widgets.pidSetup import pidSetup
 
 
 if __name__ == "__main__":

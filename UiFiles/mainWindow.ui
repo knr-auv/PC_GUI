@@ -61,7 +61,7 @@
        <enum>QTabWidget::Rounded</enum>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="test">
        <property name="sizePolicy">
@@ -213,7 +213,7 @@
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_3">
            <item>
-            <widget class="QWidget" name="pidSetup" native="true">
+            <widget class="pidSetup" name="pidSetup" native="true">
              <layout class="QVBoxLayout" name="verticalLayout_4"/>
             </widget>
            </item>
@@ -263,7 +263,7 @@
   <customwidget>
    <class>engineData</class>
    <extends>QWidget</extends>
-   <header>widgets.engineData.h</header>
+   <header>widgets/engineData.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
@@ -276,6 +276,12 @@
    <class>cameraContainer</class>
    <extends>QWidget</extends>
    <header>widgets/cameraContainer.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>pidSetup</class>
+   <extends>QWidget</extends>
+   <header>widgets/pidSetup.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

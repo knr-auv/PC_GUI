@@ -7,7 +7,7 @@ import struct
 import time
 import numpy as np
 import logging
-from cameraContainer_ui import Ui_cameraContainer
+from .cameraContainer_ui import Ui_cameraContainer
 
 
 class StreamClient(QtCore.QThread):
