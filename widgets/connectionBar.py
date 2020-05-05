@@ -3,34 +3,34 @@ from .connectionBar_ui import Ui_connectionBar
 
 
 class connectionBar(QtWidgets.QWidget,Ui_connectionBar):
-    #if widget send something to odroid you must create signal to comunicate with connection thread
-    sendData = QtCore.pyqtSignal(object)    #the argument can be anything -> 'int', 'QString'... object is for passing python objects
+    sendData = QtCore.pyqtSignal(object)
 
     def __init__(self,parent=None):
        QtWidgets.QWidget.__init__(self,parent)
        self.setupUi(self)       
        self.timer = QtCore.QTimer(self)
-       
-       
-       
-
-#now you can add labels stylesheets... whatever you need
-       self.b_connect.pressed.connect(self.b_connectAction)         
+       #self.b_connect.pressed.connect(self.b_connectAction)         
        #self.setStyleSheet(open('./style/connectionBar.css').read())
 
-    def b_connectAction(self):
-            if self.b_connect.text()=="Connect":
+    def b_connectAction(self,text):
+            if text == "Connecting...":
+                self.b_connect.setText(text)
+                self.ip_text.setEnabled(False)
+                self.b_connect.setEnabled(False)
+
+            elif text == "Connect":
+                self.b_connect.setEnabled(True)
+                self.ip_text.setEnabled(True)
+                self.b_connect.setText("Connect")
+                #self.l_ip.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+                self.ip_text.show()
+                self.l_ip.show()
+            elif text == "Disconnect":
+                
+                self.b_connect.setEnabled(True)
                 self.b_connect.setText("Disconnect")
                 self.ip_text.hide()
                 self.l_ip.hide()
-                #self.l_connection.setAlignment(QtCore.Qt.AlignTop)
-                
-
-                
-            else:
-                self.b_connect.setText("Connect")
-                self.l_ip.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
-                self.ip_text.show()
 
     def display(self, data):
         self.timer.setSingleShot(True)
