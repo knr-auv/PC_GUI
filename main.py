@@ -21,7 +21,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.connectionBar.b_connect.pressed.connect(self.manageConnection)
         
     def startConnection(self):
-        print("starting")
         addr = self.connectionBar.getAddr()
         if not addr:
             return
@@ -45,13 +44,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def connectionRefused(self,text):
         if text == "Connection refused" and self.client.active:
            self.stopConnection()
-           print("sth")
     def manageConnection(self):
         
         try:
             if self.clientThread.isRunning():
                 self.stopConnection()
-                print("sth")
+                
             else:
                 self.startConnection()
         except (AttributeError, RuntimeError):

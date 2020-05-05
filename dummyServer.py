@@ -22,40 +22,44 @@ class connectionHandler(threading.Thread):
         self.writer = writer
         self.client_loop = asyncio.get_running_loop()
         try:
-            while self.active:
-                if(rx_state == HEADER):
-                    data = await reader.readexactly(4)
+            while self.active:    
+                
+                if(rx_state ==HEADER):
+                    async def receive4():
+                        data = await reader.read(4)
+                        return data
+                    self.reader_task = asyncio.create_task(receive4())
+                    data = await self.reader_task
+                    if data == b'':
+                        raise ConnectionResetError
+                            
                     rx_len = struct.unpack("<L",data)[0]
                     rx_len -= 4
                     rx_state = DATA
-                else:
-                    try:
-                        data = await reader.readexactly(rx_len)
-                        data = struct.unpack("<5I",data)
-                        
-                        print(data)
-                        rx_state = HEADER
-                        
-                    except asyncio.IncompleteReadError:
-                        print("Message was corrupted")
-                        rx_state = HEADER
 
+                elif(rx_state == DATA):
+                    data = await reader.readexactly(rx_len)
+                    data = struct.unpack("<5I",data)
+                    print(data)
+                    rx_state = HEADER
+        except asyncio.IncompleteReadError as er:
+                print(er)
+                rx_state = HEADER
+        except asyncio.CancelledError:
+                
+                pass
         except ConnectionResetError:
-            
             print("Client disconnected")
             return
-
+        print("closing")
         writer.close()
         await writer.wait_closed()
         return
 
 
-
     async def serverHandler(self):
-
         self.server = await asyncio.start_server(self.clientHandler, self.host, self.port, family = socket.AF_INET, flags = socket.SOCK_STREAM)
         print("Server is listening: " + str(self.host)+":"+str(self.port))
-        
         try:
            async with self.server:
                 await self.server.serve_forever()
@@ -64,17 +68,17 @@ class connectionHandler(threading.Thread):
             self.active=False
             print("Server terminated")
             await self.server.wait_closed()
-            
-
-
     
     def run(self):
         asyncio.run(self.serverHandler(),debug =True)
-    #TODO terminate all active connection before closing
+
+    
     def stop(self):
-        self.server.close()
-        if self.server.is_serving():
-            print("Server is runnig --> we have a problem")
+        async def coro():
+            self.active= False
+            await self.server.close()
+        asyncio.run_coroutine_threadsafe(coro() , self.client_loop)
+        
     
     def send(self):
         data = [random.randint(0,100),random.randint(0,100),random.randint(0,100),random.randint(0,100),random.randint(0,100)]
