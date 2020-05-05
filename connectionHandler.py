@@ -1,101 +1,89 @@
-import asyncio,socket, struct
+import asyncio,socket, struct, threading
 from PyQt5 import QtCore
 
 
 
 class connectionHandler(QtCore.QObject):
-    
+    #TODO deal with mess in signals
     connectionInfo = QtCore.pyqtSignal(object)
+    connectionStatus = QtCore.pyqtSignal(object)
     connectionTerminated = QtCore.pyqtSignal()
-    clientConnected = QtCore.pyqtSignal()
     dataReceived = QtCore.pyqtSignal(object)
-    HEADER = 0
-    DATA = 1
-  
     
     def __init__(self, addr):
         super(connectionHandler, self).__init__()
         self.host = addr[0]
         self.port = addr[1]
         self.active = True
-        self.rx_state = self.HEADER
-        self.tx_ready = True
-        self.tx_buff = []
-    
-
-    async def clientHandler(self, reader,writer):
-        self.clientConnected.emit()
-        self.connectionInfo.emit(("Connected with: "+ str(writer.get_extra_info('peername'))))
+            
+    async def client(self):
         
-        rx_len = 0
+        self.connectionInfo.emit(("Connecting to: "+ str(self.host)+":"+str(self.port)))
         try:
-            while self.active:
-                if len(self.tx_buff)!=0 and self.tx_ready==True:
-                    self.tx_ready= False
-                    writer.write(self.tx_buff.pop(0))
-                    await writer.drain()
-                    self.tx_ready=True
-                
-                if(self.rx_state == self.HEADER):
-                    data = await reader.readexactly(4)
-                    rx_len = struct.unpack("<L",data)[0]
-                    rx_len -= 4
-                    self.rx_state = self.DATA
-                else:
-                    try:
+            self.connectionStatus.emit("Connecting...")
+            reader, self.writer = await asyncio.open_connection(host = self.host, port = self.port, family = socket.AF_INET, flags = socket.SOCK_STREAM)
+        except ConnectionRefusedError:
+            self.connectionInfo.emit("Connection refused")
+            self.connectionStatus.emit("Connect")
+            return
+        self.client_loop = asyncio.get_running_loop()
+        self.connectionInfo.emit(("Connected with: "+ str(self.writer.get_extra_info('peername'))))
+        self.connectionStatus.emit("Disconnect")
+        HEADER = 0
+        DATA = 1
+        rx_state = HEADER
+        rx_len =0
+        try:
+            while self.active:    
+                try:
+                    if(rx_state ==HEADER):
+                        async def receive4():
+                            data = await reader.readexactly(4)
+                            return data
+                        self.reader_task = asyncio.create_task(receive4())  #there should be another way to stop reading task...
+                        data = await self.reader_task
+                        rx_len = struct.unpack("<L",data)[0]
+                        rx_len -= 4
+                        rx_state = DATA
+
+                    elif(rx_state == DATA):
                         data = await reader.readexactly(rx_len)
                         data = struct.unpack("<5I",data)
-                        self.dataReceived.emit(data)
                         print(data)
-                        self.rx_state = self.HEADER
-                        
-                    except asyncio.IncompleteReadError:
-                        self.connectionInfo.emit("Message was corrupted")
-                        self.rx_state = self.HEADER
-
+                        rx_state = HEADER                            
+                except asyncio.IncompleteReadError:
+                    rx_state = HEADER
+                except asyncio.CancelledError:
+                    pass
         except ConnectionResetError:
+            self.reader_task.cancel()
+            self.connectionInfo.emit("Connection terminated")
+            self.connectionStatus.emit("Connect")
             self.connectionTerminated.emit()
-            self.connectionInfo.emit("Client disconnected")
             return
-
-        writer.close()
-        await writer.wait_closed()
-        return
-
-
-
-    async def serverHandler(self):
-
-        self.server = await asyncio.start_server(self.clientHandler, self.host, self.port, family = socket.AF_INET, flags = socket.SOCK_STREAM)
-        self.connectionInfo.emit("Server is listening: " + str(self.host)+":"+str(self.port))
-        
-        try:
-           async with self.server:
-                await self.server.serve_forever()
+        self.writer.close()
+        await self.writer.wait_closed()
+        self.connectionInfo.emit("Connection terminated")
+        self.connectionStatus.emit("Connect")
        
-        except asyncio.CancelledError:
-            self.active=False
-            self.connectionInfo.emit("Server terminated")
-            await self.server.wait_closed()
-            
-
-
-    
     def run(self):
-        asyncio.run(self.serverHandler(),debug =True)
-    #TODO terminate all active connection before closing
-    def stop(self):
-        self.server.close()
-        if self.server.is_serving():
-            print("Server is runnig --> we have a problem")
-    
+        asyncio.run(self.client(), debug = True)
         
-            
+    def stop(self):
+        async def coro():
+            self.reader_task.cancel() 
+        self.active = False
+        try:
+            asyncio.run_coroutine_threadsafe(coro(), self.client_loop)
+        except AttributeError:
+            pass
+        
+          
     def send(self, data):
-        #protecting buffer 
-        self.tx_ready = False
-        self.tx_buff.append(data)
-        self.tx_ready = True
+        async def write():
+            self.writer.write(data)
+            await self.writer.drain()       
+        asyncio.run_coroutine_threadsafe(write(), self.client_loop)
 
 class parser():
     def __init__(self, func):

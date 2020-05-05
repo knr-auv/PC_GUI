@@ -13,45 +13,51 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def __init__(self):
         super(MainWindow,self).__init__()
         self.setupUi(self)
-       
         #self.setStyleSheet(open('style/mainWindow.css').read())
         self.setWindowIcon(QtGui.QIcon('img/KNR_logo.png'))
-        self.serverRunning = False
         self.connectButtons()
-        
-
-
+      
     def connectButtons(self):
         self.connectionBar.b_connect.pressed.connect(self.manageConnection)
-
-   
-    #starting server
+        
     def startConnection(self):
+        print("starting")
         addr = self.connectionBar.getAddr()
         if not addr:
             return
-        self.serverRunning = True
-        self.serverThread=QtCore.QThread()
-        self.server = connectionHandler(addr)
-        self.server.moveToThread(self.serverThread)
-        self.serverThread.started.connect(self.server.run)
-        self.server.connectionInfo.connect(self.connectionBar.display)
-        self.server.clientConnected.connect(lambda: self.server.dataReceived.connect(self.updateWidgets))
-        self.server.connectionTerminated.connect(self.server.dataReceived.disconnect)
-        self.serverThread.finished.connect(self.serverThread.deleteLater)
-        self.serverThread.start()
+        self.clientThread=QtCore.QThread()
+        self.client = connectionHandler(addr)
+        self.client.moveToThread(self.clientThread)
+        self.clientThread.started.connect(self.client.run)
+        self.client.connectionStatus.connect(self.connectionBar.b_connectAction)
+        self.client.connectionInfo.connect(self.connectionBar.display)
+        self.client.connectionInfo.connect(self.connectionRefused)
+        self.client.dataReceived.connect(self.updateWidgets)
+        self.client.connectionTerminated.connect(self.client.dataReceived.disconnect)
+        self.client.connectionTerminated.connect(self.stopConnection)
+        self.clientThread.finished.connect(self.clientThread.deleteLater)
+        self.clientThread.start()
 
     def stopConnection(self):
-        self.serverRunning = False
-        self.server.stop()            
-        self.serverThread.quit()
-   
+        self.client.stop() 
+        self.clientThread.quit()
+
+    def connectionRefused(self,text):
+        if text == "Connection refused" and self.client.active:
+           self.stopConnection()
+           print("sth")
     def manageConnection(self):
-        if not self.serverRunning:
+        
+        try:
+            if self.clientThread.isRunning():
+                self.stopConnection()
+                print("sth")
+            else:
+                self.startConnection()
+        except (AttributeError, RuntimeError):
             self.startConnection()
-        else:
-            self.stopConnection()
-           
+        
+            
 
 
 
