@@ -28,43 +28,37 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.client = connectionHandler(addr)
         self.client.moveToThread(self.clientThread)
         self.clientThread.started.connect(self.client.run)
-        self.client.connectionStatus.connect(self.connectionBar.b_connectAction)
+        self.client.connectionButton.connect(self.connectionBar.b_connectAction)
         self.client.connectionInfo.connect(self.connectionBar.display)
-        self.client.connectionInfo.connect(self.connectionRefused)
-        self.client.dataReceived.connect(self.updateWidgets)
-        self.client.connectionTerminated.connect(self.client.dataReceived.disconnect)
+        self.client.clientConnected.connect(self.updateWidgets)
+        self.client.clientConnected.connect(self.sendData)
+        self.client.connectionRefused.connect(self.stopConnection)
         self.client.connectionTerminated.connect(self.stopConnection)
         self.clientThread.finished.connect(self.clientThread.deleteLater)
         self.clientThread.start()
 
+    def updateWidgets(self):
+        #self.client.receivedPID.connect(self.pidSetup.update)
+        self.client.receivedMotors.connect(self.engineData.update)
+        self.client.receivedBoatData.connect(self.boatData.update)
+
+    def sendData(self):
+        #for example self.pidsetup.signal.connet(self.client.pidSend)
+        pass
     def stopConnection(self):
         self.client.stop() 
         self.clientThread.quit()
 
-    def connectionRefused(self,text):
-        if text == "Connection refused" and self.client.active:
-           self.stopConnection()
+
     def manageConnection(self):
-        
         try:
             if self.clientThread.isRunning():
                 self.stopConnection()
-                
             else:
                 self.startConnection()
         except (AttributeError, RuntimeError):
             self.startConnection()
         
-            
-
-
-
-    def updateWidgets(self, data):
-        
-        self.engineData.update([data[0],data[1],data[2],data[3],data[4]])
-        self.boatData.update(data[0],data[1],data[2])
-
-
 def main():
     app=QtWidgets.QApplication(sys.argv)
     window = MainWindow()

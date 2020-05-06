@@ -1,17 +1,121 @@
 import asyncio,socket, struct, threading
 from PyQt5 import QtCore
+from concurrent.futures import ThreadPoolExecutor
+
+
+class parser(QtCore.QObject):
+    receivedPID = QtCore.pyqtSignal(object)
+    receivedMotors = QtCore.pyqtSignal(object)
+    receivedBoatData = QtCore.pyqtSignal(object)
+
+    PID = 0
+    MOTORS = 1
+    BOAT_DATA = 2
+    def parse(self, data):
+        if data[0]== self.PID:
+            ROLL = 1
+            PITCH = 2
+            YAW = 3
+            ALL = 4
+            if data[1]!= ALL:
+                msg = struct.unpack('<2B3f', data)
+                msg = list(msg)
+                msg.pop(0)
+                if msg[0]==ROLL:
+                    msg[0] = 'roll'
+                elif msg[0]==PITCH:
+                    msg[0] ='pitch'
+                elif msg[0]==YAW:
+                    msg[0]='yaw'
+                receivedPID.emit(msg)
+            elif data[1]==ALL:
+                msg  = struct.unpack('<2B9f', data)
+                msg = list(msg)
+                msg.pop(0)
+                msg[0]='all'
+                self.receivedPID.emit(msg)
+        elif data[0]==self.MOTORS:
+            msg = struct.unpack('<B5f', data)
+            msg = list(msg)
+            msg.pop(0)
+            self.receivedMotors.emit(msg)
+
+        elif data[0] == self.BOAT_DATA:
+            msg = struct.unpack('<B5f',data)
+            msg = list(data)
+            msg.pop(0)
+            self.receivedBoatData.emit(msg)
 
 
 
-class connectionHandler(QtCore.QObject):
+class sender():
+    #everything is lsb first
+    SEND_PID = 0
+    PID_REQUEST = 1
+    def send(self):
+        pass
+
+    def send_msg(self, msg):
+        header = struct.pack('<i', len(msg)+4)
+        msg = bytearray(header+msg)
+        self.send(msg)
+
+    def sendPID(self, PID = []):
+        spec = int()
+        axis = PID[0]
+      
+        if axis=='roll':
+            spec=1
+        elif axis =='pitch':
+            spec = 2
+        elif axis == 'yaw':
+            spec = 3
+        elif axis =='all':
+            spec = 4
+        else:
+            print(axis+"is not a valid argument of pidSend. Valid arguments: 'roll', 'pitch', 'yaw', 'all'")
+            return
+
+        PID.pop(0)
+        if spec != 4:
+            tx_buffer = [self.SEND_PID,spec]  + PID
+            tx_buffer = struct.pack('<2B3f', *(tx_buffer))
+            self.send_msg(tx_buffer)
+        elif spec == 4:
+            tx_buffer = [self.SEND_PID,spec]  + PID
+            tx_buffer = struct.pack('<2B9f', *(tx_buffer))
+            self.send_msg(tx_buffer)
+
+
+    def sendPIDRequest(self, axis):
+        spec = int()
+        try:
+            if axis=='roll':
+                spec=1
+            elif axis =='pitch':
+                spec = 2
+            elif axis == 'yaw':
+                spec = 3
+            elif axis =='all':
+                spec = 4
+            else:
+                raise invalidValue
+        except invalidValue:
+            print(axis+"is not a valid argument of pidSend. Valid arguments: 'roll', 'pitch', 'yaw', 'all'")
+        tx_buffer = [self.PID_REQUEST,spec]
+        tx_buffer = struct.pack('<2B',tx_buffer)
+
+
+class connectionHandler(parser,sender):
     #TODO deal with mess in signals
     connectionInfo = QtCore.pyqtSignal(object)
-    connectionStatus = QtCore.pyqtSignal(object)
+    connectionButton = QtCore.pyqtSignal(object)
     connectionTerminated = QtCore.pyqtSignal()
-    dataReceived = QtCore.pyqtSignal(object)
-    
+    connectionRefused = QtCore.pyqtSignal()
+    clientConnected = QtCore.pyqtSignal()
     def __init__(self, addr):
         super(connectionHandler, self).__init__()
+        #self.parser = parser()
         self.host = addr[0]
         self.port = addr[1]
         self.active = True
@@ -20,15 +124,18 @@ class connectionHandler(QtCore.QObject):
         
         self.connectionInfo.emit(("Connecting to: "+ str(self.host)+":"+str(self.port)))
         try:
-            self.connectionStatus.emit("Connecting...")
+            self.connectionButton.emit("Connecting...")
             reader, self.writer = await asyncio.open_connection(host = self.host, port = self.port, family = socket.AF_INET, flags = socket.SOCK_STREAM)
         except ConnectionRefusedError:
             self.connectionInfo.emit("Connection refused")
-            self.connectionStatus.emit("Connect")
+            self.connectionButton.emit("Connect")
+            self.connectionRefused.emit()
             return
         self.client_loop = asyncio.get_running_loop()
         self.connectionInfo.emit(("Connected with: "+ str(self.writer.get_extra_info('peername'))))
-        self.connectionStatus.emit("Disconnect")
+        self.connectionButton.emit("Disconnect")
+        self.clientConnected.emit()
+        executor = ThreadPoolExecutor(max_workers=2)
         HEADER = 0
         DATA = 1
         rx_state = HEADER
@@ -40,7 +147,7 @@ class connectionHandler(QtCore.QObject):
                         async def receive4():
                             data = await reader.readexactly(4)
                             return data
-                        self.reader_task = asyncio.create_task(receive4())  #there should be another way to stop reading task...
+                        self.reader_task = asyncio.create_task(receive4())
                         data = await self.reader_task
                         rx_len = struct.unpack("<L",data)[0]
                         rx_len -= 4
@@ -48,23 +155,24 @@ class connectionHandler(QtCore.QObject):
 
                     elif(rx_state == DATA):
                         data = await reader.readexactly(rx_len)
-                        data = struct.unpack("<5I",data)
-                        print(data)
+                        executor.submit(self.parse ,data)
                         rx_state = HEADER                            
                 except asyncio.IncompleteReadError:
                     rx_state = HEADER
                 except asyncio.CancelledError:
                     pass
         except ConnectionResetError:
+            executor.shutdown()
             self.reader_task.cancel()
             self.connectionInfo.emit("Connection terminated")
-            self.connectionStatus.emit("Connect")
+            self.connectionButton.emit("Connect")
             self.connectionTerminated.emit()
             return
+        executor.shutdown()
         self.writer.close()
         await self.writer.wait_closed()
         self.connectionInfo.emit("Connection terminated")
-        self.connectionStatus.emit("Connect")
+        self.connectionButton.emit("Connect")
        
     def run(self):
         asyncio.run(self.client(), debug = True)
@@ -85,11 +193,5 @@ class connectionHandler(QtCore.QObject):
             await self.writer.drain()       
         asyncio.run_coroutine_threadsafe(write(), self.client_loop)
 
-class parser():
-    def __init__(self, func):
-        self.send=func
 
-    def sendPids(P, I, D):
-        tx_buffer = [0, P,I,D]
-        tx_buffer = struct.pack('<2i3f', *([4+len(tx_buffer)]+tx_buffer))
-        self.send(tx_buffer)
+
