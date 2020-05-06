@@ -1,7 +1,7 @@
 # This Python file uses the following encoding: utf-8
 from PyQt5 import QtCore
 from PyQt5 import QtWidgets
-from pidSetup_ui import Ui_pidSetup
+from .pidSetup_ui import Ui_pidSetup
 
 
 class PID:
@@ -46,12 +46,12 @@ class pidSetup(QtWidgets.QWidget, Ui_pidSetup):
     send_pid=QtCore.pyqtSignal(object)
     request_pid=QtCore.pyqtSignal(str)
     
-    def __init__(self):
-        QtWidgets.QWidget.__init__(self)
+    def __init__(self,parent=None):
+        QtWidgets.QWidget.__init__(self, parent)
         self.setupUi(self)
         self.variables_setup()
         self.connect_buttons()
-        self.setStyleSheet(open("../style/pidSetup.css").read())
+        self.setStyleSheet(open("style/pidSetup.css").read())
 
     def variables_setup(self):
         self.roll_pid=PID()
