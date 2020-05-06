@@ -1,4 +1,4 @@
-import asyncio,socket, struct, threading, random
+import asyncio,socket, struct,  random
 from concurrent.futures import ThreadPoolExecutor
 
 class sender():
@@ -38,8 +38,8 @@ class sender():
             tx_buffer = struct.pack('<2B9f', *(tx_buffer))
             self.send_msg(tx_buffer)
             
-    def sendMotors(self):
-        data = [random.randint(0,100),random.randint(0,100),random.randint(0,100),random.randint(0,100),random.randint(0,100)] 
+    def sendMotors(self,data): 
+        
         tx_buffer = [self.MOTORS]+data
         tx_buffer = struct.pack('<B5f', *(tx_buffer))
         self.send_msg(tx_buffer)
@@ -51,7 +51,6 @@ class sender():
 
 class parser():
     
-        
     PID_RECEIVED = 0
     PID_REQUEST = 1
     
@@ -81,23 +80,55 @@ class parser():
                 
         if data[0] == self.PID_REQUEST:
             msg = struct.unpack('<2B',data)
+            if msg[1]==ROLL:
+                msg[1] = 'roll'
+            elif msg[1]==PITCH:
+                msg[1] ='pitch'
+            elif msg[1]==YAW:
+                 msg[1]='yaw'
+            elif msg[1]== ALL:
+                msg[1] = 'all'
             self.sendPID(self.getPID(msg[1]))
             
-class connectionHandler(threading.Thread,sender,parser):
-    
-  
-    def __init__(self, addr):
+class connectionHandler(sender,parser):
+     
+    def __init__(self, addr, getPID, getMotors):
         super(connectionHandler, self).__init__()
-        #self.parser = parser()
+        self.executor = ThreadPoolExecutor(max_workers=10)
+        self.methodCollector(getPID, getMotors)
         self.host = addr[0]
         self.port = addr[1]
         self.active = True
         self.tx_ready = True
         self.tx_buff = []
-        self.start()
+        self.clientConnected = False
+        self.sendingActive = False
+
+    def methodCollector(self, getPID, getMotors): #getDepth, getHummidity...
+        self.getPID = getPID
+        self.getMotors = getMotors
         
-   
+
+    def start_sending(self, interval = 0.03):
+        self.interval = interval
+        self.executor.submit(lambda: asyncio.run(self.loop()))
+        
+    def stop_sending(self):
+        self.sendingActive = False
+    def start_serving(self):
+        self.executor.submit(self.run)
+
+    async def loop(self):
+        if self.clientConnected:
+            self.sendingActive = True
+            
+            while self.clientConnected and self.sendingActive:
+                await asyncio.sleep(self.interval)
                 
+                self.sendMotors(self.getMotors())
+                
+            self.sendingActive = False
+
     async def clientHandler(self, reader,writer):
         HEADER = 0
         DATA = 1
@@ -105,7 +136,8 @@ class connectionHandler(threading.Thread,sender,parser):
         print("client connected")
         self.writer = writer
         self.client_loop = asyncio.get_running_loop()
-        executor = ThreadPoolExecutor(max_workers=2)
+        self.clientConnected = True
+        
         try:
             while self.active:    
                 
@@ -124,7 +156,7 @@ class connectionHandler(threading.Thread,sender,parser):
 
                 elif(rx_state == DATA):
                     data = await reader.readexactly(rx_len)
-                    executor.submit(self.parse ,data)
+                    self.executor.submit(self.parse ,data)
                     rx_state = HEADER
         except asyncio.IncompleteReadError as er:
                 print(er)
@@ -133,10 +165,11 @@ class connectionHandler(threading.Thread,sender,parser):
                 
                 pass
         except ConnectionResetError:
-            executor.shutdown()
+            self.clientConnected = False
             print("Client disconnected")
             return
         print("closing")
+        self.clientConnected = False
         writer.close()
         await writer.wait_closed()
         return
@@ -171,10 +204,22 @@ class connectionHandler(threading.Thread,sender,parser):
             await self.writer.drain()       
         asyncio.run_coroutine_threadsafe(write(), self.client_loop)
 
-
-            
-            
+def dummyDataProvider(len=None, spec = None):
+    data = []
+    if spec ==None:
+        for i in range(len):
+            data.append(random.randint(0,100))
+    elif spec!='all':
+        for i in range(3):
+            data.append(random.randint(0,10))
+    elif spec=='all':
+        for i in range(9):
+            data.append(random.randint(0,10))
+    return data
 
 if __name__=="__main__":
-    server = connectionHandler(("localhost", 8080))
-    
+    addr = ("localhost", 8080)
+    server = connectionHandler(addr, lambda arg: dummyDataProvider(spec = arg), lambda: dummyDataProvider(len=5))
+    server.start_serving()
+
+   

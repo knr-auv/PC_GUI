@@ -2,7 +2,6 @@
 
 ## Rules
    
-   - Each widget has a branch - stick to it.
    - Each file type has its own folder - don't make a mess.
    - Every widget should be QWidget. 
    - If you want to use QtDesigner, don't change the generated file.
@@ -12,6 +11,8 @@
    - Qt is based on signals/interrupts. Heavy tasks should be handled by QThreads otherwise application will freeze. 
 
 ## Hints
+Start dummyServer and use start_sending() to test widget update/send methods
+
 Get familiar with 'connectionBar.py' - this is what your widget should look like. Each QWidget can act like an standalone application. You can run it by... take a look at connectionBar.py.
 
 Use style sheets to create nice labels, buttons etc. Some terrible examples are included in connectionBar.py... 
