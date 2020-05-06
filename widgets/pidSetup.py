@@ -3,10 +3,6 @@ from PyQt5 import QtCore
 from PyQt5 import QtWidgets
 from pidSetup_ui import Ui_pidSetup
 
-'''
-Each regulator has its own send method and send signal.
-There is also update method which can be connected to a thread providing current pid settings from odroid
-'''
 
 class PID:
     def __init__(self,P=0.,I=0.,D=0.):
@@ -47,9 +43,8 @@ class PID:
         
 
 class pidSetup(QtWidgets.QWidget, Ui_pidSetup):
-    send_roll_pid=QtCore.pyqtSignal(object)
-    send_pitch_pid=QtCore.pyqtSignal(object)
-    send_yaw_pid=QtCore.pyqtSignal(object)
+    send_pid=QtCore.pyqtSignal(object)
+    request_pid=QtCore.pyqtSignal(str)
     
     def __init__(self):
         QtWidgets.QWidget.__init__(self)
@@ -64,91 +59,120 @@ class pidSetup(QtWidgets.QWidget, Ui_pidSetup):
         self.yaw_pid=PID()
 
     def connect_buttons(self):
-        self.roll_set_btn.clicked.connect(self.roll_send)
-        self.roll_restore_btn.clicked.connect(self.roll_restore)
-        self.pitch_set_btn.clicked.connect(self.pitch_send)
-        self.pitch_restore_btn.clicked.connect(self.pitch_restore)
-        self.yaw_set_btn.clicked.connect(self.yaw_send)
-        self.yaw_restore_btn.clicked.connect(self.yaw_restore)
-        self.all_set_btn.clicked.connect(self.all_send)
-        self.all_restore_btn.clicked.connect(self.all_restore)
+        self.roll_set_btn.clicked.connect(lambda x: self.pidSend('roll'))
+        self.roll_restore_btn.clicked.connect(lambda x: self.pidRequest('roll'))
+        self.pitch_set_btn.clicked.connect(lambda x: self.pidSend('pitch'))
+        self.pitch_restore_btn.clicked.connect(lambda x: self.pidRequest('pitch'))
+        self.yaw_set_btn.clicked.connect(lambda x: self.pidSend('yaw'))
+        self.yaw_restore_btn.clicked.connect(lambda x: self.pidRequest('yaw'))
+        self.all_set_btn.clicked.connect(lambda x: self.pidSend('all'))
+        self.all_restore_btn.clicked.connect(lambda x: self.pidRequest('all'))
 
-    @QtCore.pyqtSlot()
-    def roll_send(self):
-        self.roll_pid.setKp(float(self.roll_kp_edit.value()))
-        self.roll_pid.setKi(float(self.roll_ki_edit.value()))
-        self.roll_pid.setKd(float(self.roll_kd_edit.value()))
-        self.send_roll_pid.emit(self.roll_pid)
+    @QtCore.pyqtSlot(str)
+    def pidRequest(self, data):
+        self.request_pid.emit(data)
 
-        message="Roll PID set\nKp: {:.2f} Ki: {:.2f} Kd: {:.2f}".format(self.roll_pid.getKp(), self.roll_pid.getKi(), self.roll_pid.getKd())
-        self.status.setText(message)
+    @QtCore.pyqtSlot(str)
+    def pidSend(self, data):
+        if data=='roll':
+            self.roll_pid.setKp(float(self.roll_kp_edit.value()))
+            self.roll_pid.setKi(float(self.roll_ki_edit.value()))
+            self.roll_pid.setKd(float(self.roll_kd_edit.value()))
+            self.send_pid.emit(['roll',self.roll_pid.getKp(),self.roll_pid.getKi(),self.roll_pid.getKd()])
+            message="Roll PID set\nKp: {:.2f} Ki: {:.2f} Kd: {:.2f}".format(self.roll_pid.getKp(), self.roll_pid.getKi(), self.roll_pid.getKd())
+            self.status.setText(message)
+        if data=='pitch':
+            self.pitch_pid.setKp(float(self.pitch_kp_edit.value()))
+            self.pitch_pid.setKi(float(self.pitch_ki_edit.value()))
+            self.pitch_pid.setKd(float(self.pitch_kd_edit.value()))
+            self.send_pid.emit(['pitch',self.pitch_pid.getKp(),self.pitch_pid.getKi(),self.pitch_pid.getKd()])
+            message="Pitch PID set\nKp: {:.2f} Ki: {:.2f} Kd: {:.2f}".format(self.pitch_pid.getKp(), self.pitch_pid.getKi(), self.pitch_pid.getKd())
+            self.status.setText(message)
+        if data=='yaw':
+            self.yaw_pid.setKp(float(self.yaw_kp_edit.value()))
+            self.yaw_pid.setKi(float(self.yaw_ki_edit.value()))
+            self.yaw_pid.setKd(float(self.yaw_kd_edit.value()))
+            self.send_pid.emit(['yaw',self.yaw_pid.getKp(),self.yaw_pid.getKi(),self.yaw_pid.getKd()])
+            message="Yaw PID set\nKp: {:.2f} Ki: {:.2f} Kd: {:.2f}".format(self.yaw_pid.getKp(), self.yaw_pid.getKi(), self.yaw_pid.getKd())
+            self.status.setText(message)
+        if data=='all':
+            self.roll_pid.setKp(float(self.roll_kp_edit.value()))
+            self.roll_pid.setKi(float(self.roll_ki_edit.value()))
+            self.roll_pid.setKd(float(self.roll_kd_edit.value()))
+            self.pitch_pid.setKp(float(self.pitch_kp_edit.value()))
+            self.pitch_pid.setKi(float(self.pitch_ki_edit.value()))
+            self.pitch_pid.setKd(float(self.pitch_kd_edit.value()))
+            self.yaw_pid.setKp(float(self.yaw_kp_edit.value()))
+            self.yaw_pid.setKi(float(self.yaw_ki_edit.value()))
+            self.yaw_pid.setKd(float(self.yaw_kd_edit.value()))
+            self.send_pid.emit([
+                'all',self.roll_pid.getKp(),self.roll_pid.getKi(),self.roll_pid.getKd(),
+                self.pitch_pid.getKp(),self.pitch_pid.getKi(),self.pitch_pid.getKd(),
+                self.yaw_pid.getKp(),self.yaw_pid.getKi(),self.yaw_pid.getKd()
+                ])
+            message="All PIDs set"
+            message+="\nRoll PID Kp: {:.2f} Ki: {:.2f} Kd: {:.2f}".format(self.roll_pid.getKp(), self.roll_pid.getKi(), self.roll_pid.getKd())
+            message+="\nPitch PID Kp: {:.2f} Ki: {:.2f} Kd: {:.2f}".format(self.pitch_pid.getKp(), self.pitch_pid.getKi(), self.pitch_pid.getKd())
+            message+="\nYaw PID Kp: {:.2f} Ki: {:.2f} Kd: {:.2f}".format(self.yaw_pid.getKp(), self.yaw_pid.getKi(), self.yaw_pid.getKd())
+            self.status.setText(message)
 
-    def roll_restore(self):
-        self.roll_kp_edit.setValue(self.roll_pid.getKp())
-        self.roll_ki_edit.setValue(self.roll_pid.getKi())
-        self.roll_kd_edit.setValue(self.roll_pid.getKd())
-        message="Roll PID restored from odroid\nKp: {:.2f} Ki: {:.2f} Kd: {:.2f}".format(self.roll_pid.getKp(), self.roll_pid.getKi(), self.roll_pid.getKd())
-        self.status.setText(message)
+    def pidReceive(self, data):
+        if data[0]=='roll':
+            self.roll_pid.setKp(float(data[1]))
+            self.roll_pid.setKi(float(data[2]))
+            self.roll_pid.setKd(float(data[3]))
+            self.roll_kp_edit.setValue(self.roll_pid.getKp())
+            self.roll_ki_edit.setValue(self.roll_pid.getKi())
+            self.roll_kd_edit.setValue(self.roll_pid.getKd())
+            message="Roll PID restored from odroid\nKp: {:.2f} Ki: {:.2f} Kd: {:.2f}".format(self.roll_pid.getKp(), self.roll_pid.getKi(), self.roll_pid.getKd())
+            self.status.setText(message)
 
-    @QtCore.pyqtSlot()
-    def pitch_send(self):
-        self.pitch_pid.setKp(self.pitch_kp_edit.value())
-        self.pitch_pid.setKi(self.pitch_ki_edit.value())
-        self.pitch_pid.setKd(self.pitch_kd_edit.value())
-        self.send_pitch_pid.emit(self.pitch_pid)
+        if data[0]=='pitch':
+            self.pitch_pid.setKp(float(data[1]))
+            self.pitch_pid.setKi(float(data[2]))
+            self.pitch_pid.setKd(float(data[3]))
+            self.pitch_kp_edit.setValue(self.pitch_pid.getKp())
+            self.pitch_ki_edit.setValue(self.pitch_pid.getKi())
+            self.pitch_kd_edit.setValue(self.pitch_pid.getKd())
+            message="Pitch PID restored from odroid\nKp: {:.2f} Ki: {:.2f} Kd: {:.2f}".format(self.pitch_pid.getKp(), self.pitch_pid.getKi(), self.pitch_pid.getKd())
+            self.status.setText(message)
 
-        message="Pitch PID set\nKp: {:.2f} Ki: {:.2f} Kd: {:.2f}".format(self.pitch_pid.getKp(), self.pitch_pid.getKi(), self.pitch_pid.getKd())
-        self.status.setText(message)
-        
-    def pitch_restore(self):
-        self.pitch_kp_edit.setValue(self.pitch_pid.getKp())
-        self.pitch_ki_edit.setValue(self.pitch_pid.getKi())
-        self.pitch_kd_edit.setValue(self.pitch_pid.getKd())
-        message="Pitch PID restored from odroid\nKp: {:.2f} Ki: {:.2f} Kd: {:.2f}".format(self.pitch_pid.getKp(), self.pitch_pid.getKi(), self.pitch_pid.getKd())
-        self.status.setText(message)
+        if data[0]=='yaw':
+            self.yaw_pid.setKp(float(data[1]))
+            self.yaw_pid.setKi(float(data[2]))
+            self.yaw_pid.setKd(float(data[3]))
+            self.yaw_kp_edit.setValue(self.yaw_pid.getKp())
+            self.yaw_ki_edit.setValue(self.yaw_pid.getKi())
+            self.yaw_kd_edit.setValue(self.yaw_pid.getKd())
+            message="Yaw PID restored from odroid\nKp: {:.2f} Ki: {:.2f} Kd: {:.2f}".format(self.yaw_pid.getKp(), self.yaw_pid.getKi(), self.yaw_pid.getKd())
+            self.status.setText(message)
 
-    @QtCore.pyqtSlot()
-    def yaw_send(self):
-        self.yaw_pid.setKp(self.yaw_kp_edit.value())
-        self.yaw_pid.setKi(self.yaw_ki_edit.value())
-        self.yaw_pid.setKd(self.yaw_kd_edit.value())
-        self.send_yaw_pid.emit(self.yaw_pid)
+        if data[0]=='all':
+            self.roll_pid.setKp(float(data[1]))
+            self.roll_pid.setKi(float(data[2]))
+            self.roll_pid.setKd(float(data[3]))
+            self.pitch_pid.setKp(float(data[4]))
+            self.pitch_pid.setKi(float(data[5]))
+            self.pitch_pid.setKd(float(data[6]))
+            self.yaw_pid.setKp(float(data[7]))
+            self.yaw_pid.setKi(float(data[8]))
+            self.yaw_pid.setKd(float(data[9]))
+            self.roll_kp_edit.setValue(self.roll_pid.getKp())
+            self.roll_ki_edit.setValue(self.roll_pid.getKi())
+            self.roll_kd_edit.setValue(self.roll_pid.getKd())
+            self.pitch_kp_edit.setValue(self.pitch_pid.getKp())
+            self.pitch_ki_edit.setValue(self.pitch_pid.getKi())
+            self.pitch_kd_edit.setValue(self.pitch_pid.getKd())
+            self.yaw_kp_edit.setValue(self.yaw_pid.getKp())
+            self.yaw_ki_edit.setValue(self.yaw_pid.getKi())
+            self.yaw_kd_edit.setValue(self.yaw_pid.getKd())
+            message="All PIDs restored from odroid"
+            message+="\nRoll PID Kp: {:.2f} Ki: {:.2f} Kd: {:.2f}".format(self.roll_pid.getKp(), self.roll_pid.getKi(), self.roll_pid.getKd())
+            message+="\nPitch PID Kp: {:.2f} Ki: {:.2f} Kd: {:.2f}".format(self.pitch_pid.getKp(), self.pitch_pid.getKi(), self.pitch_pid.getKd())
+            message+="\nYaw PID Kp: {:.2f} Ki: {:.2f} Kd: {:.2f}".format(self.yaw_pid.getKp(), self.yaw_pid.getKi(), self.yaw_pid.getKd())
+            self.status.setText(message)
 
-        message="Yaw PID set\nKp: {:.2f} Ki: {:.2f} Kd: {:.2f}".format(self.yaw_pid.getKp(), self.yaw_pid.getKi(), self.yaw_pid.getKd())
-        self.status.setText(message)
-        
-    def yaw_restore(self):
-        self.yaw_kp_edit.setValue(self.yaw_pid.getKp())
-        self.yaw_ki_edit.setValue(self.yaw_pid.getKi())
-        self.yaw_kd_edit.setValue(self.yaw_pid.getKd())
-        message="Yaw PID restored from odroid\nKp: {:.2f} Ki: {:.2f} Kd: {:.2f}".format(self.yaw_pid.getKp(), self.yaw_pid.getKi(), self.yaw_pid.getKd())
-        self.status.setText(message)
 
-    def all_send(self):
-        self.roll_send()
-        self.pitch_send()
-        self.yaw_send()
-        message="All PIDs set"
-        message+="\nRoll PID Kp: {:.2f} Ki: {:.2f} Kd: {:.2f}".format(self.roll_pid.getKp(), self.roll_pid.getKi(), self.roll_pid.getKd())
-        message+="\nPitch PID Kp: {:.2f} Ki: {:.2f} Kd: {:.2f}".format(self.pitch_pid.getKp(), self.pitch_pid.getKi(), self.pitch_pid.getKd())
-        message+="\nYaw PID Kp: {:.2f} Ki: {:.2f} Kd: {:.2f}".format(self.yaw_pid.getKp(), self.yaw_pid.getKi(), self.yaw_pid.getKd())
-        self.status.setText(message)
-
-    def all_restore(self):
-        self.roll_restore()
-        self.pitch_restore()
-        self.yaw_restore()
-        message="All PIDs restored from odroid"
-        message+="\nRoll PID Kp: {:.2f} Ki: {:.2f} Kd: {:.2f}".format(self.roll_pid.getKp(), self.roll_pid.getKi(), self.roll_pid.getKd())
-        message+="\nPitch PID Kp: {:.2f} Ki: {:.2f} Kd: {:.2f}".format(self.pitch_pid.getKp(), self.pitch_pid.getKi(), self.pitch_pid.getKd())
-        message+="\nYaw PID Kp: {:.2f} Ki: {:.2f} Kd: {:.2f}".format(self.yaw_pid.getKp(), self.yaw_pid.getKi(), self.yaw_pid.getKd())
-        self.status.setText(message)
-
-    @QtCore.pyqtSlot(object,object,object)
-    def update(self, roll_pid=PID(),pitch_pid=PID(),yaw_pid=PID()):
-        self.roll_pid.setAllFromList(roll_pid.getAll())
-        self.pitch_pid.setAllFromList(pitch_pid.getAll())
-        self.yaw_pid.setAllFromList(yaw_pid.getAll())
 
 if __name__=="__main__":
     import sys
