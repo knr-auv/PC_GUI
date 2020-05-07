@@ -8,10 +8,10 @@ class sender():
         header = struct.pack('<i', len(msg)+ 4)
         msg = bytearray(header+msg)
         self.send(msg)
-        
-    PID = 0
-    MOTORS = 1
-    BOAT_DATA = 2
+    ERROR = 0    
+    PID = 1
+    MOTORS = 2
+    BOAT_DATA = 3
 
     def sendPid(self, PID = []):
         spec = int()
@@ -50,11 +50,11 @@ class sender():
         self.send_msg(tx_buffer)
 
 class parser():
+    CONTROL = 0
+    PID_RECEIVED = 1
+    PID_REQUEST = 2
     
-    PID_RECEIVED = 0
-    PID_REQUEST = 1
-    
-    def parser(self, data):
+    def parse(self, data):
         if data[0] == self.PID_RECEIVED:
             ROLL = 1
             PITCH = 2
@@ -89,7 +89,14 @@ class parser():
             elif msg[1]== ALL:
                 msg[1] = 'all'
             self.sendPID(self.getPID(msg[1]))
+        if (data[0] == self.CONTROL):
             
+            START_SENDING = 1
+            if (data[1]==START_SENDING):
+                msg = struct.unpack('<2Bf',data)
+                msg = list(msg)
+                msg.pop(0)
+                self.start_sending(msg[1])
 class connectionHandler(sender,parser):
      
     def __init__(self, addr, getPID, getMotors):

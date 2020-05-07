@@ -1,4 +1,4 @@
-import sys, struct
+import sys, struct, threading
 from PyQt5 import QtWidgets, uic, QtGui, QtCore
 
 
@@ -43,8 +43,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.client.receivedBoatData.connect(self.boatData.update)
 
     def sendData(self):
-        #for example self.pidsetup.signal.connet(self.client.pidSend)
-        pass
+        self.connectionManager.sendData.connect(lambda arg: self.client.sendControl(arg))
+        
     def stopConnection(self):
         self.client.stop() 
         self.clientThread.quit()
@@ -58,7 +58,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 self.startConnection()
         except (AttributeError, RuntimeError):
             self.startConnection()
-        
+  
 def main():
     app=QtWidgets.QApplication(sys.argv)
     window = MainWindow()

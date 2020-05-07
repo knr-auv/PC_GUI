@@ -7,10 +7,10 @@ class parser(QtCore.QObject):
     receivedPID = QtCore.pyqtSignal(object)
     receivedMotors = QtCore.pyqtSignal(object)
     receivedBoatData = QtCore.pyqtSignal(object)
-
-    PID = 0
-    MOTORS = 1
-    BOAT_DATA = 2
+    ERROR = 0
+    PID = 1
+    MOTORS = 2
+    BOAT_DATA = 3
     def parse(self, data):
         if data[0]== self.PID:
             ROLL = 1
@@ -50,8 +50,9 @@ class parser(QtCore.QObject):
 
 class sender():
     #everything is lsb first
-    SEND_PID = 0
-    PID_REQUEST = 1
+    CONTROL = 0
+    SEND_PID = 1
+    PID_REQUEST = 2
     def send(self):
         pass
 
@@ -86,6 +87,12 @@ class sender():
             tx_buffer = struct.pack('<2B9f', *(tx_buffer))
             self.send_msg(tx_buffer)
 
+    def sendControl(self, msg):
+        START_SENDING = 1
+        if msg[0] == START_SENDING:
+            tx_buffer = [self.CONTROL]+msg
+            tx_buffer = struct.pack('<2Bf',*(tx_buffer))
+            self.send_msg(tx_buffer)
 
     def sendPIDRequest(self, axis):
         spec = int()
