@@ -1,4 +1,4 @@
-import sys, struct, threading
+import sys, struct, threading, logging
 from PyQt5 import QtWidgets, uic, QtGui, QtCore
 
 
@@ -14,6 +14,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         super(MainWindow,self).__init__()
         self.setupUi(self)
         #self.setStyleSheet(open('style/mainWindow.css').read())
+        logging.basicConfig(level=logging.DEBUG)
         self.setWindowIcon(QtGui.QIcon('img/KNR_logo.png'))
         self.connectButtons()
       

@@ -1,4 +1,4 @@
-import asyncio,socket, struct, threading
+import asyncio,socket, struct, threading, logging
 from PyQt5 import QtCore
 from concurrent.futures import ThreadPoolExecutor
 
@@ -12,40 +12,42 @@ class parser(QtCore.QObject):
     MOTORS = 2
     BOAT_DATA = 3
     def parse(self, data):
-        if data[0]== self.PID:
-            ROLL = 1
-            PITCH = 2
-            YAW = 3
-            ALL = 4
-            if data[1]!= ALL:
-                msg = struct.unpack('<2B3f', data)
+        try:
+            if data[0]== self.PID:
+                ROLL = 1
+                PITCH = 2
+                YAW = 3
+                ALL = 4
+                if data[1]!= ALL:
+                    msg = struct.unpack('<2B3f', data)
+                    msg = list(msg)
+                    msg.pop(0)
+                    if msg[0]==ROLL:
+                        msg[0] = 'roll'
+                    elif msg[0]==PITCH:
+                        msg[0] ='pitch'
+                    elif msg[0]==YAW:
+                        msg[0]='yaw'
+                    receivedPID.emit(msg)
+                elif data[1]==ALL:
+                    msg  = struct.unpack('<2B9f', data)
+                    msg = list(msg)
+                    msg.pop(0)
+                    msg[0]='all'
+                    self.receivedPID.emit(msg)
+            elif data[0]==self.MOTORS:
+                msg = struct.unpack('<B5f', data)
                 msg = list(msg)
                 msg.pop(0)
-                if msg[0]==ROLL:
-                    msg[0] = 'roll'
-                elif msg[0]==PITCH:
-                    msg[0] ='pitch'
-                elif msg[0]==YAW:
-                    msg[0]='yaw'
-                receivedPID.emit(msg)
-            elif data[1]==ALL:
-                msg  = struct.unpack('<2B9f', data)
-                msg = list(msg)
+                self.receivedMotors.emit(msg)
+
+            elif data[0] == self.BOAT_DATA:
+                msg = struct.unpack('<B5f',data)
+                msg = list(data)
                 msg.pop(0)
-                msg[0]='all'
-                self.receivedPID.emit(msg)
-        elif data[0]==self.MOTORS:
-            msg = struct.unpack('<B5f', data)
-            msg = list(msg)
-            msg.pop(0)
-            self.receivedMotors.emit(msg)
-
-        elif data[0] == self.BOAT_DATA:
-            msg = struct.unpack('<B5f',data)
-            msg = list(data)
-            msg.pop(0)
-            self.receivedBoatData.emit(msg)
-
+                self.receivedBoatData.emit(msg)
+        except:
+            logging.critical("error while parsing data")
 
 
 class sender():
@@ -74,7 +76,7 @@ class sender():
         elif axis =='all':
             spec = 4
         else:
-            print(axis+"is not a valid argument of pidSend. Valid arguments: 'roll', 'pitch', 'yaw', 'all'")
+            logging.debug(axis+"is not a valid argument of pidSend. Valid arguments: 'roll', 'pitch', 'yaw', 'all'")
             return
 
         PID.pop(0)
@@ -108,7 +110,7 @@ class sender():
             else:
                 raise invalidValue
         except invalidValue:
-            print(axis+"is not a valid argument of pidSend. Valid arguments: 'roll', 'pitch', 'yaw', 'all'")
+            loging.debug(axis+"is not a valid argument of pidSend. Valid arguments: 'roll', 'pitch', 'yaw', 'all'")
         tx_buffer = [self.PID_REQUEST,spec]
         tx_buffer = struct.pack('<2B',tx_buffer)
 
