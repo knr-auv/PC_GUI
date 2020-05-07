@@ -1,11 +1,7 @@
 import sys, struct, threading, logging
 from PyQt5 import QtWidgets, uic, QtGui, QtCore
-
-
 from mainwindow import Ui_MainWindow
 from connectionHandler import *
-
-
 
 
 class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
@@ -39,22 +35,30 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.clientThread.start()
 
     def updateWidgets(self):
-        #self.client.receivedPID.connect(self.pidSetup.update)
+        self.client.receivedPID.connect(self.pidSetup.update)
         self.client.receivedMotors.connect(self.engineData.update)
         self.client.receivedBoatData.connect(self.boatData.update)
 
     def sendData(self):
+        self.pidSetup.request_pid.connect(lambda arg: self.client.sendPIDRequest(arg))
+        self.pidSetup.send_pid.connect(lambda arg: self.client.sendPID(arg))
         self.connectionManager.sendData.connect(lambda arg: self.client.sendControl(arg))
-        
+    
     def stopConnection(self):
+        self.client.receivedPID.disconnect()
+        self.client.receivedMotors.disconnect()
+        self.client.receivedBoatData.disconnect()
+        self.pidSetup.request_pid.disconnect()
+        self.pidSetup.send_pid.disconnect()
+        self.connectionManager.sendData.disconnect()
         self.client.stop() 
         self.clientThread.quit()
-
 
     def manageConnection(self):
         try:
             if self.clientThread.isRunning():
                 self.stopConnection()
+                
             else:
                 self.startConnection()
         except (AttributeError, RuntimeError):
