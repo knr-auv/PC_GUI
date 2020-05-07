@@ -225,8 +225,11 @@ def dummyDataProvider(len=None, spec = None):
     return data
 
 if __name__=="__main__":
+    async def delay():
+        while True:
+            await asyncio.sleep(1)
     addr = ("localhost", 8080)
     server = connectionHandler(addr, lambda arg: dummyDataProvider(spec = arg), lambda: dummyDataProvider(len=5))
     server.start_serving()
-
+    asyncio.run(delay())
    
