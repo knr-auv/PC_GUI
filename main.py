@@ -39,11 +39,13 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.clientThread.start()
 
     def updateWidgets(self):
-        #self.client.receivedPID.connect(self.pidSetup.update)
+        self.client.receivedPID.connect(self.pidSetup.update)
         self.client.receivedMotors.connect(self.engineData.update)
         self.client.receivedBoatData.connect(self.boatData.update)
 
     def sendData(self):
+        self.pidSetup.request_pid.connect(lambda arg: self.client.sendPIDRequest(arg))
+        self.pidSetup.send_pid.connect(lambda arg: self.client.sendPID(arg))
         self.connectionManager.sendData.connect(lambda arg: self.client.sendControl(arg))
         
     def stopConnection(self):

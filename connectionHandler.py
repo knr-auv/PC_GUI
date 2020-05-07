@@ -1,4 +1,4 @@
-import asyncio,socket, struct, threading, logging
+import asyncio,socket, struct, threading, logging, sys
 from PyQt5 import QtCore
 from concurrent.futures import ThreadPoolExecutor
 
@@ -28,7 +28,7 @@ class parser(QtCore.QObject):
                         msg[0] ='pitch'
                     elif msg[0]==YAW:
                         msg[0]='yaw'
-                    receivedPID.emit(msg)
+                    self.receivedPID.emit(msg)
                 elif data[1]==ALL:
                     msg  = struct.unpack('<2B9f', data)
                     msg = list(msg)
@@ -47,6 +47,7 @@ class parser(QtCore.QObject):
                 msg.pop(0)
                 self.receivedBoatData.emit(msg)
         except:
+            sys.exc_info()
             logging.critical("error while parsing data")
 
 
@@ -66,7 +67,6 @@ class sender():
     def sendPID(self, PID = []):
         spec = int()
         axis = PID[0]
-      
         if axis=='roll':
             spec=1
         elif axis =='pitch':
@@ -76,7 +76,7 @@ class sender():
         elif axis =='all':
             spec = 4
         else:
-            logging.debug(axis+"is not a valid argument of pidSend. Valid arguments: 'roll', 'pitch', 'yaw', 'all'")
+            logging.debug(str(axis)+"is not a valid argument of sendPid. Valid arguments: 'roll', 'pitch', 'yaw', 'all'")
             return
 
         PID.pop(0)
@@ -110,9 +110,10 @@ class sender():
             else:
                 raise invalidValue
         except invalidValue:
-            loging.debug(axis+"is not a valid argument of pidSend. Valid arguments: 'roll', 'pitch', 'yaw', 'all'")
+            loging.debug(str(axis)+"is not a valid argument of sendPidRequest. Valid arguments: 'roll', 'pitch', 'yaw', 'all'")
         tx_buffer = [self.PID_REQUEST,spec]
-        tx_buffer = struct.pack('<2B',tx_buffer)
+        tx_buffer = struct.pack('<2B',*(tx_buffer))
+        self.send_msg(tx_buffer)
 
 
 class connectionHandler(parser,sender):

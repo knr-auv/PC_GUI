@@ -16,7 +16,6 @@ class sender():
     def sendPid(self, PID = []):
         spec = int()
         axis = PID[0]
-      
         if axis=='roll':
             spec=1
         elif axis =='pitch':
@@ -60,6 +59,7 @@ class parser():
             PITCH = 2
             YAW = 3
             ALL = 4
+            
             if data[1]!= ALL:
                 msg = struct.unpack('<2B3f', data)
                 msg = list(msg)
@@ -79,7 +79,12 @@ class parser():
                 self.setPIDs(msg)
                 
         if data[0] == self.PID_REQUEST:
+            ROLL = 1
+            PITCH = 2
+            YAW = 3
+            ALL = 4
             msg = struct.unpack('<2B',data)
+            msg = list(msg)
             if msg[1]==ROLL:
                 msg[1] = 'roll'
             elif msg[1]==PITCH:
@@ -88,7 +93,7 @@ class parser():
                  msg[1]='yaw'
             elif msg[1]== ALL:
                 msg[1] = 'all'
-            self.sendPID(self.getPID(msg[1]))
+            self.sendPid(self.getPIDs(msg[1]))
         if (data[0] == self.CONTROL):
             
             START_SENDING = 1
@@ -99,10 +104,10 @@ class parser():
                 self.start_sending(msg[1])
 class connectionHandler(sender,parser):
      
-    def __init__(self, addr, getPID, getMotors):
+    def __init__(self, addr, getPIDs,setPIDs, getMotors):
         super(connectionHandler, self).__init__()
-        self.executor = ThreadPoolExecutor(max_workers=10)
-        self.methodCollector(getPID, getMotors)
+        self.executor = ThreadPoolExecutor(max_workers=3)
+        self.methodCollector(getPIDs,setPIDs, getMotors)
         self.host = addr[0]
         self.port = addr[1]
         self.active = True
@@ -111,10 +116,10 @@ class connectionHandler(sender,parser):
         self.clientConnected = False
         self.sendingActive = False
 
-    def methodCollector(self, getPID, getMotors): #getDepth, getHummidity...
-        self.getPID = getPID
+    def methodCollector(self, getPIDs, setPIDs, getMotors): #getDepth, getHummidity...
+        self.getPIDs = getPIDs
         self.getMotors = getMotors
-        
+        self.setPIDs = setPIDs
 
     def start_sending(self, interval = 0.03):
         self.interval = interval
@@ -212,14 +217,17 @@ class connectionHandler(sender,parser):
         asyncio.run_coroutine_threadsafe(write(), self.client_loop)
 
 def dummyDataProvider(len=None, spec = None):
+
     data = []
     if spec ==None:
         for i in range(len):
             data.append(random.randint(0,100))
     elif spec!='all':
+        data.append(spec)
         for i in range(3):
             data.append(random.randint(0,10))
     elif spec=='all':
+        data.append(spec)
         for i in range(9):
             data.append(random.randint(0,10))
     return data
@@ -229,7 +237,7 @@ if __name__=="__main__":
         while True:
             await asyncio.sleep(1)
     addr = ("localhost", 8080)
-    server = connectionHandler(addr, lambda arg: dummyDataProvider(spec = arg), lambda: dummyDataProvider(len=5))
+    server = connectionHandler(addr, lambda x:dummyDataProvider(len=None, spec = x),print, lambda: dummyDataProvider(len=5))
     server.start_serving()
     asyncio.run(delay())
    
