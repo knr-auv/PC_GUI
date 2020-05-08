@@ -1,14 +1,10 @@
-import os
-from PyQt5 import QtCore, QtGui, QtWidgets, uic
-import socket
 import cv2
-import pickle
-import struct
-import time
 import numpy as np
-import logging
-from .cameraContainer_ui import Ui_cameraContainer
+import asyncio,socket, struct, logging
+from PyQt5 import QtCore
 
+class streamClientSignals(QtCore.QObject):
+    newFrame = QtCore.pyqtSignal(object)
 
 class StreamClient(QtCore.QThread):
     """Class creating a stream client"""
@@ -56,27 +52,25 @@ class StreamClient(QtCore.QThread):
         return cv2.imdecode(frame, cv2.IMREAD_COLOR)
 
 
-class SimulationClient(QtCore.QThread):
+class SimulationClient(QtCore.QRunnable):
     """Klasa Tworzy clienta do odbierania ramek zdjec z symulacji"""
     def __init__(self, port=44209, ip='localhost'):
         super(SimulationClient, self).__init__()
+        self.signals = streamClientSignals()
         """Inicjalizacja socekta """
         self.port = port
         self.ip = ip
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.active = True
         logging.debug("Socket connect port:{}".format(port))
         self.data = b""
         self.frame = None
 
     def run(self):
         self.socket.connect((self.ip, self.port))
-        time.sleep(1)
-        while True:
-            try:
-                self.frame = self.recive_frame()
-            except e:
-                print(e)
-                pass
+        while self.active:
+            self.signals.newFrame.emit(self.receive_frame())
+
 
     def stop(self):
         self.socket.close()
@@ -85,7 +79,7 @@ class SimulationClient(QtCore.QThread):
         self.socket.close()
 
     """Metdoa zwraca klatke OpenCV uzyskana z Symulacji"""
-    def recive_frame(self):
+    def receive_frame(self):
         self.data = b""
         self.socket.send(b"\x69")
         confirm = self.socket.recv(1)
@@ -97,46 +91,3 @@ class SimulationClient(QtCore.QThread):
             self.data += self.socket.recv(4096)
         self.data = np.fromstring(self.data, np.uint8)
         return cv2.imdecode(self.data, cv2.IMREAD_COLOR)
-
-"""stream jest obsługiwany przez wątek kontrolowany w pętli głównej. Dzięki temu jak przełącza się na inną karte to aplikacja się nie zacina :D"""
-class cameraContainer(QtWidgets.QWidget, Ui_cameraContainer):
-    def __init__(self,parent=None):
-        QtWidgets.QWidget.__init__(self,parent)
-        self.setupUi(self)
-        self.connectButton.clicked.connect(self.start_client)
-        self.framelabel.setScaledContents(True)
-        self.client = False
-        self.start = time.time()
-
-    @QtCore.pyqtSlot()
-    def start_client(self):
-       
-        if self.client is False:
-            self.connectButton.setText("Disconnect")
-            self.client = True
-        else:
-            self.connectButton.setText("Connect")
-            self.client = False
-
-    def update_frame(self, frame):
-        self.displayImage(frame, True)
-
-    def displayImage(self, img, window=True):
-        if img is not None:
-            qformat = QtGui.QImage.Format_Indexed8
-            if len(img.shape)==3 :
-                if img.shape[2]==4:
-                    qformat = QtGui.QImage.Format_RGBA8888
-                else:
-                    qformat = QtGui.QImage.Format_RGB888
-            outImage = QtGui.QImage(img, img.shape[1], img.shape[0], img.strides[0], qformat)
-            outImage = outImage.rgbSwapped()
-            if window:
-                self.framelabel.setPixmap(QtGui.QPixmap.fromImage(outImage))
-
-if __name__=='__main__':
-    import sys
-    app = QtWidgets.QApplication(sys.argv)
-    window = cameraContainer()
-    window.show()
-    sys.exit(app.exec_())

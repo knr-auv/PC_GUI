@@ -1,8 +1,8 @@
 import sys, struct, threading, logging
 from PyQt5 import QtWidgets, uic, QtGui, QtCore
 from mainwindow import Ui_MainWindow
-from connectionHandler import *
-
+from odroidClient import *
+from streamClient import *
 
 class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     
@@ -12,58 +12,77 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         #self.setStyleSheet(open('style/mainWindow.css').read())
         logging.basicConfig(level=logging.DEBUG)
         self.setWindowIcon(QtGui.QIcon('img/KNR_logo.png'))
+        self.threadpool = QtCore.QThreadPool()
+        self.streamClientIsRunning = False
+        self.odroidClientIsRunning = False
+        self.odroidClientConnected = False
         self.connectButtons()
-      
+
+    def updateWidgets(self):
+        self.odroidClient.signals.receivedPID.connect(self.pidSetup.update)
+        self.odroidClient.signals.receivedMotors.connect(self.engineData.update)
+        self.odroidClient.signals.receivedBoatData.connect(self.boatData.update)
+
+    def sendData(self):
+        self.odroidClientConnected = True
+        self.pidSetup.request_pid.connect(lambda arg: self.odroidClient.sendPIDRequest(arg))
+        self.pidSetup.send_pid.connect(lambda arg: self.odroidClient.sendPID(arg))
+        self.connectionManager.sendData.connect(lambda arg: self.odroidClient.sendControl(arg))
+
     def connectButtons(self):
-        self.connectionBar.b_connect.pressed.connect(self.manageConnection)
-        
-    def startConnection(self):
+        self.connectionBar.b_connect.pressed.connect(self.manageOdroidConnection)
+        self.cameraContainer.connectButton.clicked.connect(self.manageStreamConnection)
+    
+    def manageOdroidConnection(self):
+        if self.odroidClientIsRunning:
+            self.stopOdroidConnection()        
+        else:
+            self.startOdroidConnection()
+
+    def startOdroidConnection(self):
         addr = self.connectionBar.getAddr()
         if not addr:
             return
-        self.clientThread=QtCore.QThread()
-        self.client = connectionHandler(addr)
-        self.client.moveToThread(self.clientThread)
-        self.clientThread.started.connect(self.client.run)
-        self.client.connectionButton.connect(self.connectionBar.b_connectAction)
-        self.client.connectionInfo.connect(self.connectionBar.display)
-        self.client.clientConnected.connect(self.updateWidgets)
-        self.client.clientConnected.connect(self.sendData)
-        self.client.connectionRefused.connect(self.stopConnection)
-        self.client.connectionTerminated.connect(self.stopConnection)
-        self.clientThread.finished.connect(self.clientThread.deleteLater)
-        self.clientThread.start()
+        self.odroidClient = odroidClient(addr)
+        self.odroidClient.signals.connectionButton.connect(self.connectionBar.b_connectAction)
+        self.odroidClient.signals.connectionInfo.connect(self.connectionBar.display)
+        self.odroidClient.signals.clientConnected.connect(self.updateWidgets)
+        self.odroidClient.signals.clientConnected.connect(self.sendData)
+        self.odroidClient.signals.connectionRefused.connect(self.stopOdroidConnection)
+        self.odroidClient.signals.connectionTerminated.connect(self.stopOdroidConnection)
+        self.threadpool.start(self.odroidClient)
+        self.odroidClientIsRunning= True
 
-    def updateWidgets(self):
-        self.client.receivedPID.connect(self.pidSetup.update)
-        self.client.receivedMotors.connect(self.engineData.update)
-        self.client.receivedBoatData.connect(self.boatData.update)
+    def stopOdroidConnection(self):
+        if self.odroidClientConnected:
+            self.odroidClient.signals.receivedPID.disconnect()
+            self.odroidClient.signals.receivedMotors.disconnect()
+            self.odroidClient.signals.receivedBoatData.disconnect()
+            self.pidSetup.request_pid.disconnect()
+            self.pidSetup.send_pid.disconnect()
+            self.connectionManager.sendData.disconnect()
+            self.odroidClientConnected = False
+        self.odroidClient.stop() 
+        self.odroidClientIsRunning = False
 
-    def sendData(self):
-        self.pidSetup.request_pid.connect(lambda arg: self.client.sendPIDRequest(arg))
-        self.pidSetup.send_pid.connect(lambda arg: self.client.sendPID(arg))
-        self.connectionManager.sendData.connect(lambda arg: self.client.sendControl(arg))
-    
-    def stopConnection(self):
-        self.client.receivedPID.disconnect()
-        self.client.receivedMotors.disconnect()
-        self.client.receivedBoatData.disconnect()
-        self.pidSetup.request_pid.disconnect()
-        self.pidSetup.send_pid.disconnect()
-        self.connectionManager.sendData.disconnect()
-        self.client.stop() 
-        self.clientThread.quit()
-
-    def manageConnection(self):
-        try:
-            if self.clientThread.isRunning():
-                self.stopConnection()
-                
+    def manageStreamConnection(self):
+            if self.streamClientIsRunning:
+                self.stopStreamConnection()
             else:
-                self.startConnection()
-        except (AttributeError, RuntimeError):
-            self.startConnection()
-  
+                self.startStreamConnection()
+    def startStreamConnection(self):
+        ip, port = self.cameraContainer.clientData.displayText().split(":")
+        self.streamClient = SimulationClient(ip=str(ip), port=int(port))
+        self.updateStream()
+        self.threadpool.start(self.streamClient)
+        self.streamClientIsRunning = True
+
+    def stopStreamConnection(self):
+        self.streamClient.active = False
+        self.streamClientIsRunning = False
+    
+    def updateStream(self):
+        self.streamClient.signals.newFrame.connect(self.cameraContainer.update_frame)
 def main():
     app=QtWidgets.QApplication(sys.argv)
     window = MainWindow()
