@@ -9,7 +9,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def __init__(self):
         super(MainWindow,self).__init__()
         self.setupUi(self)
-        #self.setStyleSheet(open('style/mainWindow.css').read())
+        self.setStyleSheet(open('style/mainWindow.css').read())
         logging.basicConfig(level=logging.DEBUG)
         self.setWindowIcon(QtGui.QIcon('img/KNR_logo.png'))
         self.threadpool = QtCore.QThreadPool()
@@ -27,7 +27,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.odroidClientConnected = True
         self.pidSetup.request_pid.connect(lambda arg: self.odroidClient.sendPIDRequest(arg))
         self.pidSetup.send_pid.connect(lambda arg: self.odroidClient.sendPID(arg))
-        self.connectionManager.sendData.connect(lambda arg: self.odroidClient.sendControl(arg))
+        self.boatData.sendData.connect(lambda arg: self.odroidClient.sendControl(arg))
 
     def connectButtons(self):
         self.connectionBar.b_connect.pressed.connect(self.manageOdroidConnection)
@@ -60,7 +60,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.odroidClient.signals.receivedBoatData.disconnect()
             self.pidSetup.request_pid.disconnect()
             self.pidSetup.send_pid.disconnect()
-            self.connectionManager.sendData.disconnect()
+            self.boatData.sendData.disconnect()
             self.odroidClientConnected = False
         self.odroidClient.stop() 
         self.odroidClientIsRunning = False

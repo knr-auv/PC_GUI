@@ -10,7 +10,7 @@ class connectionBar(QtWidgets.QWidget,Ui_connectionBar):
        self.setupUi(self)       
        self.timer = QtCore.QTimer(self)
        #self.b_connect.pressed.connect(self.b_connectAction)         
-       #self.setStyleSheet(open('./style/connectionBar.css').read())
+       self.setStyleSheet(open('./style/connectionBar.css').read())
 
     def b_connectAction(self,text):
             if text == "Connecting...":

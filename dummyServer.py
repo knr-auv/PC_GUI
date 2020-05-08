@@ -94,14 +94,17 @@ class parser():
             elif msg[1]== ALL:
                 msg[1] = 'all'
             self.sendPid(self.getPIDs(msg[1]))
+
         if (data[0] == self.CONTROL):
-            
             START_SENDING = 1
+            STOP_SENDING = 2
             if (data[1]==START_SENDING):
-                msg = struct.unpack('<2Bf',data)
+                msg = struct.unpack('<2BI',data)
                 msg = list(msg)
                 msg.pop(0)
                 self.start_sending(msg[1])
+            if (data[1]==STOP_SENDING):
+                self.stop_sending()
 class connectionHandler(sender,parser):
      
     def __init__(self, addr, getPIDs,setPIDs, getMotors):
@@ -121,8 +124,8 @@ class connectionHandler(sender,parser):
         self.getMotors = getMotors
         self.setPIDs = setPIDs
 
-    def start_sending(self, interval = 0.03):
-        self.interval = interval
+    def start_sending(self, interval = 30):
+        self.interval = interval/1000
         self.executor.submit(lambda: asyncio.run(self.loop()))
         
     def stop_sending(self):

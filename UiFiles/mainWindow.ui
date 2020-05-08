@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>873</width>
+    <width>1098</width>
     <height>843</height>
    </rect>
   </property>
@@ -154,7 +154,7 @@
              <property name="minimumSize">
               <size>
                <width>419</width>
-               <height>200</height>
+               <height>250</height>
               </size>
              </property>
              <property name="maximumSize">
@@ -188,22 +188,6 @@
            </sizepolicy>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_5">
-           <item>
-            <widget class="connectionManager" name="connectionManager" native="true">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="MinimumExpanding" vsizetype="Maximum">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="minimumSize">
-              <size>
-               <width>400</width>
-               <height>20</height>
-              </size>
-             </property>
-            </widget>
-           </item>
            <item>
             <widget class="cameraContainer" name="cameraContainer" native="true">
              <property name="sizePolicy">
@@ -274,7 +258,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>873</width>
+     <width>1098</width>
      <height>21</height>
     </rect>
    </property>
@@ -310,12 +294,6 @@
    <class>pidSetup</class>
    <extends>QWidget</extends>
    <header>widgets/pidSetup.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>connectionManager</class>
-   <extends>QWidget</extends>
-   <header>widgets/connectionManager.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

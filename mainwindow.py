@@ -13,7 +13,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(873, 843)
+        MainWindow.resize(1098, 843)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -88,7 +88,7 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.boatData.sizePolicy().hasHeightForWidth())
         self.boatData.setSizePolicy(sizePolicy)
-        self.boatData.setMinimumSize(QtCore.QSize(419, 200))
+        self.boatData.setMinimumSize(QtCore.QSize(419, 250))
         self.boatData.setMaximumSize(QtCore.QSize(419, 16777215))
         self.boatData.setBaseSize(QtCore.QSize(419, 400))
         self.boatData.setObjectName("boatData")
@@ -106,15 +106,6 @@ class Ui_MainWindow(object):
         self.widget.setObjectName("widget")
         self.verticalLayout_5 = QtWidgets.QVBoxLayout(self.widget)
         self.verticalLayout_5.setObjectName("verticalLayout_5")
-        self.connectionManager = connectionManager(self.widget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.Maximum)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.connectionManager.sizePolicy().hasHeightForWidth())
-        self.connectionManager.setSizePolicy(sizePolicy)
-        self.connectionManager.setMinimumSize(QtCore.QSize(400, 20))
-        self.connectionManager.setObjectName("connectionManager")
-        self.verticalLayout_5.addWidget(self.connectionManager)
         self.cameraContainer = cameraContainer(self.widget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Ignored, QtWidgets.QSizePolicy.Ignored)
         sizePolicy.setHorizontalStretch(0)
@@ -161,7 +152,7 @@ class Ui_MainWindow(object):
         self.verticalLayout.addWidget(self.tabs)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 873, 21))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 1098, 21))
         self.menubar.setObjectName("menubar")
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
@@ -181,7 +172,6 @@ class Ui_MainWindow(object):
 from widgets.boatData import boatData
 from widgets.cameraContainer import cameraContainer
 from widgets.connectionBar import connectionBar
-from widgets.connectionManager import connectionManager
 from widgets.engineData import engineData
 from widgets.pidSetup import pidSetup
 
