@@ -1,12 +1,19 @@
-import asyncio,socket, struct, threading, logging, sys
+import asyncio,socket, struct, threading, logging
+
 from PyQt5 import QtCore
 from concurrent.futures import ThreadPoolExecutor
 
-
-class parser(QtCore.QObject):
+class odroidClientSignals(QtCore.QObject):
     receivedPID = QtCore.pyqtSignal(object)
     receivedMotors = QtCore.pyqtSignal(object)
     receivedBoatData = QtCore.pyqtSignal(object)
+    connectionInfo = QtCore.pyqtSignal(object)
+    connectionButton = QtCore.pyqtSignal(object)
+    connectionTerminated = QtCore.pyqtSignal()
+    connectionRefused = QtCore.pyqtSignal()
+    clientConnected = QtCore.pyqtSignal()
+
+class parser():
     ERROR = 0
     PID = 1
     MOTORS = 2
@@ -28,31 +35,29 @@ class parser(QtCore.QObject):
                         msg[0] ='pitch'
                     elif msg[0]==YAW:
                         msg[0]='yaw'
-                    self.receivedPID.emit(msg)
+                    self.signals.receivedPID.emit(msg)
                 elif data[1]==ALL:
                     msg  = struct.unpack('<2B9f', data)
                     msg = list(msg)
                     msg.pop(0)
                     msg[0]='all'
-                    self.receivedPID.emit(msg)
+                    self.signals.receivedPID.emit(msg)
             elif data[0]==self.MOTORS:
                 msg = struct.unpack('<B5f', data)
                 msg = list(msg)
                 msg.pop(0)
-                self.receivedMotors.emit(msg)
+                self.signals.receivedMotors.emit(msg)
 
             elif data[0] == self.BOAT_DATA:
                 msg = struct.unpack('<B5f',data)
                 msg = list(data)
                 msg.pop(0)
-                self.receivedBoatData.emit(msg)
+                self.signals.receivedBoatData.emit(msg)
         except:
             sys.exc_info()
             logging.critical("error while parsing data")
 
-
 class sender():
-    #everything is lsb first
     CONTROL = 0
     SEND_PID = 1
     PID_REQUEST = 2
@@ -116,35 +121,29 @@ class sender():
         self.send_msg(tx_buffer)
 
 
-class connectionHandler(parser,sender):
-    #TODO deal with mess in signals
-    connectionInfo = QtCore.pyqtSignal(object)
-    connectionButton = QtCore.pyqtSignal(object)
-    connectionTerminated = QtCore.pyqtSignal()
-    connectionRefused = QtCore.pyqtSignal()
-    clientConnected = QtCore.pyqtSignal()
+class odroidClient(QtCore.QRunnable, parser,sender):
     def __init__(self, addr):
-        super(connectionHandler, self).__init__()
+        super(odroidClient, self).__init__()
+        self.signals = odroidClientSignals()
         #self.parser = parser()
         self.host = addr[0]
         self.port = addr[1]
         self.active = True
             
     async def client(self):
-        
-        self.connectionInfo.emit(("Connecting to: "+ str(self.host)+":"+str(self.port)))
+        self.signals.connectionInfo.emit(("Connecting to: "+ str(self.host)+":"+str(self.port)))
         try:
-            self.connectionButton.emit("Connecting...")
+            self.signals.connectionButton.emit("Connecting...")
             reader, self.writer = await asyncio.open_connection(host = self.host, port = self.port, family = socket.AF_INET, flags = socket.SOCK_STREAM)
         except ConnectionRefusedError:
-            self.connectionInfo.emit("Connection refused")
-            self.connectionButton.emit("Connect")
-            self.connectionRefused.emit()
+            self.signals.connectionInfo.emit("Connection refused")
+            self.signals.connectionButton.emit("Connect")
+            self.signals.connectionRefused.emit()
             return
         self.client_loop = asyncio.get_running_loop()
-        self.connectionInfo.emit(("Connected with: "+ str(self.writer.get_extra_info('peername'))))
-        self.connectionButton.emit("Disconnect")
-        self.clientConnected.emit()
+        self.signals.connectionInfo.emit(("Connected with: "+ str(self.writer.get_extra_info('peername'))))
+        self.signals.connectionButton.emit("Disconnect")
+        self.signals.clientConnected.emit()
         executor = ThreadPoolExecutor(max_workers=2)
         HEADER = 0
         DATA = 1
@@ -174,16 +173,16 @@ class connectionHandler(parser,sender):
         except ConnectionResetError:
             executor.shutdown()
             self.reader_task.cancel()
-            self.connectionInfo.emit("Connection terminated")
-            self.connectionButton.emit("Connect")
-            self.connectionTerminated.emit()
+            self.signals.connectionInfo.emit("Connection terminated")
+            self.signals.connectionButton.emit("Connect")
+            self.signals.connectionTerminated.emit()
             return
         executor.shutdown()
         self.writer.close()
         await self.writer.wait_closed()
-        self.connectionInfo.emit("Connection terminated")
-        self.connectionButton.emit("Connect")
-       
+        self.signals.connectionInfo.emit("Connection terminated")
+        self.signals.connectionButton.emit("Connect")
+
     def run(self):
         asyncio.run(self.client(), debug = True)
         
@@ -196,12 +195,10 @@ class connectionHandler(parser,sender):
         except AttributeError:
             pass
         
-          
     def send(self, data):
         async def write():
             self.writer.write(data)
             await self.writer.drain()       
         asyncio.run_coroutine_threadsafe(write(), self.client_loop)
-
 
 
