@@ -13,7 +13,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(873, 843)
+        MainWindow.resize(1098, 843)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -112,7 +112,8 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.connectionManager.sizePolicy().hasHeightForWidth())
         self.connectionManager.setSizePolicy(sizePolicy)
-        self.connectionManager.setMinimumSize(QtCore.QSize(400, 20))
+        self.connectionManager.setMinimumSize(QtCore.QSize(0, 0))
+        self.connectionManager.setMaximumSize(QtCore.QSize(16777215, 16777215))
         self.connectionManager.setObjectName("connectionManager")
         self.verticalLayout_5.addWidget(self.connectionManager)
         self.cameraContainer = cameraContainer(self.widget)
@@ -161,7 +162,7 @@ class Ui_MainWindow(object):
         self.verticalLayout.addWidget(self.tabs)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 873, 21))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 1098, 21))
         self.menubar.setObjectName("menubar")
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QtWidgets.QStatusBar(MainWindow)

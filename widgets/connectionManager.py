@@ -7,9 +7,12 @@ class connectionManager(QtWidgets.QWidget,  Ui_connectionManager):
     def __init__(self,parent=None):
        QtWidgets.QWidget.__init__(self,parent)
        self.setupUi(self)     
-       self.b_start_sending.clicked.connect(self.clicked)
+       self.b_start_sending.clicked.connect(self.start_clicked)
+       self.b_stop_sending.clicked.connect(self.stop_clicked)
+    def start_clicked(self):
+        data = int(self.t_interval.text())
+        self.sendData.emit([1,data])
 
-    def clicked(self):
-        data = [1,0.03]
+    def stop_clicked(self):
+        data = [2]
         self.sendData.emit(data)
-        

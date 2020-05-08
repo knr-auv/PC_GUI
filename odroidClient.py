@@ -96,10 +96,16 @@ class sender():
 
     def sendControl(self, msg):
         START_SENDING = 1
+        STOP_SENDING = 2
         if msg[0] == START_SENDING:
             tx_buffer = [self.CONTROL]+msg
-            tx_buffer = struct.pack('<2Bf',*(tx_buffer))
+            tx_buffer = struct.pack('<2BI',*(tx_buffer))
             self.send_msg(tx_buffer)
+        if msg[0] == STOP_SENDING:
+            tx_buffer = [self.CONTROL]+msg
+            tx_buffer = struct.pack('<2B',*(tx_buffer))
+            self.send_msg(tx_buffer)
+
 
     def sendPIDRequest(self, axis):
         spec = int()
