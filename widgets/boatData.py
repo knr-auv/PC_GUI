@@ -10,14 +10,16 @@ class boatData(QtWidgets.QWidget,Ui_boatData):
        QtWidgets.QWidget.__init__(self,parent)
        self.setupUi(self)       
        self.setStyleSheet(open('style/boatData.css').read())
-       self.mode_data.setText("simulation")
        self.b_start_sending.clicked.connect(self.start_clicked)
        self.b_stop_sending.clicked.connect(self.stop_clicked)
-    def update(self, data): 
-        self.hum_data.setText(str(data[1]))
-        self.grasper_data.setText("not connected")
-        self.bat_data.setText("----")
-        self.depth_data.setText(str([2]))
+       self.b_stop_sending.hide()
+
+    def update(self, data):
+        text = data.decode('utf-8')
+        text = text.split(',')
+        self.mode_data.setText(text[0])
+        self.grasper_data.setText(text[1])
+
        
 
     def start_clicked(self):

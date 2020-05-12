@@ -7,6 +7,7 @@ class odroidClientSignals(QtCore.QObject):
     receivedPID = QtCore.pyqtSignal(object)
     receivedMotors = QtCore.pyqtSignal(object)
     receivedBoatData = QtCore.pyqtSignal(object)
+    receivedIMUData = QtCore.pyqtSignal(object)
     connectionInfo = QtCore.pyqtSignal(object)
     connectionButton = QtCore.pyqtSignal(object)
     connectionTerminated = QtCore.pyqtSignal()
@@ -18,6 +19,7 @@ class parser():
     PID = 1
     MOTORS = 2
     BOAT_DATA = 3
+    IMU = 4
     def parse(self, data):
         try:
             if data[0]== self.PID:
@@ -49,10 +51,14 @@ class parser():
                 self.signals.receivedMotors.emit(msg)
 
             elif data[0] == self.BOAT_DATA:
-                msg = struct.unpack('<B5f',data)
-                msg = list(data)
+                msg = struct.unpack('<2B'+str(data[1])+'s',data)
+                self.signals.receivedBoatData.emit(msg[2])
+
+            elif data[0] == self.IMU:
+                msg = struct.unpack('<B4f',data)
+                msg = list(msg)
                 msg.pop(0)
-                self.signals.receivedBoatData.emit(msg)
+                self.signals.receivedIMUData.emit(msg)
         except:
             sys.exc_info()
             logging.critical("error while parsing data")
@@ -61,6 +67,7 @@ class sender():
     CONTROL = 0
     SEND_PID = 1
     PID_REQUEST = 2
+    BOAT_DATA_REQUEST = 3
     def send(self):
         pass
 
@@ -97,6 +104,8 @@ class sender():
     def sendControl(self, msg):
         START_SENDING = 1
         STOP_SENDING = 2
+        START_PID = 3
+        STOP_PID = 4
         if msg[0] == START_SENDING:
             tx_buffer = [self.CONTROL]+msg
             tx_buffer = struct.pack('<2BI',*(tx_buffer))
@@ -106,6 +115,15 @@ class sender():
             tx_buffer = struct.pack('<2B',*(tx_buffer))
             self.send_msg(tx_buffer)
 
+        if msg[0] == START_PID:
+            tx_buffer = [self.CONTROL]+msg
+            tx_buffer = struct.pack('<2BI',*(tx_buffer))
+            self.send_msg(tx_buffer)
+
+        if msg[0] == STOP_PID:
+            tx_buffer = [self.CONTROL]+msg
+            tx_buffer = struct.pack('<2B',*(tx_buffer))
+            self.send_msg(tx_buffer)
 
     def sendPIDRequest(self, axis):
         spec = int()
@@ -126,6 +144,10 @@ class sender():
         tx_buffer = struct.pack('<2B',*(tx_buffer))
         self.send_msg(tx_buffer)
 
+    def sendBoatDataRequest(self):
+        tx_buffer = [self.BOAT_DATA_REQUEST]
+        tx_buffer = struct.pack('<B',*(tx_buffer))
+        self.send_msg(tx_buffer)
 
 class odroidClient(QtCore.QRunnable, parser,sender):
     def __init__(self, addr):
@@ -150,11 +172,14 @@ class odroidClient(QtCore.QRunnable, parser,sender):
         self.signals.connectionInfo.emit(("Connected with: "+ str(self.writer.get_extra_info('peername'))))
         self.signals.connectionButton.emit("Disconnect")
         self.signals.clientConnected.emit()
-        executor = ThreadPoolExecutor(max_workers=2)
+        executor = ThreadPoolExecutor(max_workers=5)
         HEADER = 0
         DATA = 1
         rx_state = HEADER
         rx_len =0
+        self.sendControl([1,30])
+        self.sendControl([3, 30])
+        self.sendBoatDataRequest()
         try:
             while self.active:    
                 try:

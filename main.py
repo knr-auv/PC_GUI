@@ -22,7 +22,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.odroidClient.signals.receivedPID.connect(self.pidSetup.update)
         self.odroidClient.signals.receivedMotors.connect(self.engineData.update)
         self.odroidClient.signals.receivedBoatData.connect(self.boatData.update)
-
+        self.odroidClient.signals.receivedIMUData.connect(self.IMUGraph.update)
     def sendData(self):
         self.odroidClientConnected = True
         self.pidSetup.request_pid.connect(lambda arg: self.odroidClient.sendPIDRequest(arg))
