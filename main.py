@@ -1,8 +1,8 @@
-import sys, struct, threading, logging
+import sys, struct, threading, logging,json
 from PyQt5 import QtWidgets, uic, QtGui, QtCore
 from mainwindow import Ui_MainWindow
-from odroidClient import *
-from streamClient import *
+from tools.odroidClient import *
+from tools.streamClient import *
 
 class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     
@@ -13,6 +13,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         logging.basicConfig(level=logging.DEBUG)
         self.setWindowIcon(QtGui.QIcon('img/KNR_logo.png'))
         self.threadpool = QtCore.QThreadPool()
+        with open("tools/protocol.json",'r') as fd:
+            self.protocol = json.load(fd)
         self.streamClientIsRunning = False
         self.odroidClientIsRunning = False
         self.odroidClientConnected = False
@@ -43,7 +45,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         addr = self.connectionBar.getAddr()
         if not addr:
             return
-        self.odroidClient = odroidClient(addr)
+        self.odroidClient = odroidClient(addr, self.protocol)
         self.odroidClient.signals.connectionButton.connect(self.connectionBar.b_connectAction)
         self.odroidClient.signals.connectionInfo.connect(self.connectionBar.display)
         self.odroidClient.signals.clientConnected.connect(self.updateWidgets)

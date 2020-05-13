@@ -15,14 +15,12 @@ class odroidClientSignals(QtCore.QObject):
     clientConnected = QtCore.pyqtSignal()
 
 class parser():
-    ERROR = 0
-    PID = 1
-    MOTORS = 2
-    BOAT_DATA = 3
-    IMU = 4
     def parse(self, data):
+        proto = self.protocol["TO_GUI"]
+        pid_spec = self.protocol["PID_SPEC"]
+        control_spec = self.protocol["CONTROL_SPEC"]
         try:
-            if data[0]== self.PID:
+            if data[0]== proto["PID"]:
                 ROLL = 1
                 PITCH = 2
                 YAW = 3
@@ -31,30 +29,31 @@ class parser():
                     msg = struct.unpack('<2B3f', data)
                     msg = list(msg)
                     msg.pop(0)
-                    if msg[0]==ROLL:
+                    if msg[0]==pid_spec["roll"]:
                         msg[0] = 'roll'
-                    elif msg[0]==PITCH:
+                    elif msg[0]==pid_spec["pitch"]:
                         msg[0] ='pitch'
-                    elif msg[0]==YAW:
+                    elif msg[0]==pid_spec["yaw"]:
                         msg[0]='yaw'
                     self.signals.receivedPID.emit(msg)
-                elif data[1]==ALL:
+                elif data[1]==pid_spec["all"]:
                     msg  = struct.unpack('<2B9f', data)
                     msg = list(msg)
                     msg.pop(0)
                     msg[0]='all'
                     self.signals.receivedPID.emit(msg)
-            elif data[0]==self.MOTORS:
+
+            elif data[0]==proto["MOTORS"]:
                 msg = struct.unpack('<B5f', data)
                 msg = list(msg)
                 msg.pop(0)
                 self.signals.receivedMotors.emit(msg)
 
-            elif data[0] == self.BOAT_DATA:
+            elif data[0] == proto["BOAT_DATA"]:
                 msg = struct.unpack('<2B'+str(data[1])+'s',data)
                 self.signals.receivedBoatData.emit(msg[2])
 
-            elif data[0] == self.IMU:
+            elif data[0] == proto["IMU"]:
                 msg = struct.unpack('<B4f',data)
                 msg = list(msg)
                 msg.pop(0)
@@ -64,10 +63,10 @@ class parser():
             logging.critical("error while parsing data")
 
 class sender():
-    CONTROL = 0
-    SEND_PID = 1
-    PID_REQUEST = 2
-    BOAT_DATA_REQUEST = 3
+    def __init__(self, protocol):
+        self.proto = protocol["TO_ODROID"]
+        self.pid_spec = protocol["PID_SPEC"]
+        self.control_spec = protocol['CONTROL_SPEC']
     def send(self):
         pass
 
@@ -80,79 +79,73 @@ class sender():
         spec = int()
         axis = PID[0]
         if axis=='roll':
-            spec=1
+            spec=self.pid_spec["roll"]
         elif axis =='pitch':
-            spec = 2
+            spec = self.pid_spec["pitch"]
         elif axis == 'yaw':
-            spec = 3
+            spec = self.pid_spec["yaw"]
         elif axis =='all':
-            spec = 4
+            spec = self.pid_spec["all"]
         else:
             logging.debug(str(axis)+"is not a valid argument of sendPid. Valid arguments: 'roll', 'pitch', 'yaw', 'all'")
             return
-
         PID.pop(0)
         if spec != 4:
-            tx_buffer = [self.SEND_PID,spec]  + PID
+            tx_buffer = [self.proto["PID"],spec]  + PID
             tx_buffer = struct.pack('<2B3f', *(tx_buffer))
             self.send_msg(tx_buffer)
         elif spec == 4:
-            tx_buffer = [self.SEND_PID,spec]  + PID
+            tx_buffer = [self.proto["PID"],spec]  + PID
             tx_buffer = struct.pack('<2B9f', *(tx_buffer))
             self.send_msg(tx_buffer)
 
     def sendControl(self, msg):
-        START_SENDING = 1
-        STOP_SENDING = 2
-        START_PID = 3
-        STOP_PID = 4
-        if msg[0] == START_SENDING:
-            tx_buffer = [self.CONTROL]+msg
+        if msg[0] == self.control_spec['START_TELEMETRY']:
+            tx_buffer = [self.proto["CONTROL"]]+msg
             tx_buffer = struct.pack('<2BI',*(tx_buffer))
             self.send_msg(tx_buffer)
-        if msg[0] == STOP_SENDING:
-            tx_buffer = [self.CONTROL]+msg
+        if msg[0] == self.control_spec['STOP_TELEMETRY']:
+            tx_buffer = [self.proto["CONTROL"]]+msg
             tx_buffer = struct.pack('<2B',*(tx_buffer))
             self.send_msg(tx_buffer)
 
-        if msg[0] == START_PID:
-            tx_buffer = [self.CONTROL]+msg
+        if msg[0] == self.control_spec['START_PID']:
+            tx_buffer = [self.proto["CONTROL"]]+msg
             tx_buffer = struct.pack('<2BI',*(tx_buffer))
             self.send_msg(tx_buffer)
 
-        if msg[0] == STOP_PID:
-            tx_buffer = [self.CONTROL]+msg
+        if msg[0] == self.control_spec['STOP_PID']:
+            tx_buffer = [self.proto["CONTROL"]]+msg
             tx_buffer = struct.pack('<2B',*(tx_buffer))
             self.send_msg(tx_buffer)
 
     def sendPIDRequest(self, axis):
-        spec = int()
-        try:
-            if axis=='roll':
-                spec=1
-            elif axis =='pitch':
-                spec = 2
-            elif axis == 'yaw':
-                spec = 3
-            elif axis =='all':
-                spec = 4
-            else:
-                raise invalidValue
-        except invalidValue:
-            loging.debug(str(axis)+"is not a valid argument of sendPidRequest. Valid arguments: 'roll', 'pitch', 'yaw', 'all'")
-        tx_buffer = [self.PID_REQUEST,spec]
+        if axis=='roll':
+            spec=self.pid_spec["roll"]
+        elif axis =='pitch':
+            spec = self.pid_spec["pitch"]
+        elif axis == 'yaw':
+            spec = self.pid_spec["yaw"]
+        elif axis =='all':
+            spec = self.pid_spec["all"]
+        else:
+            logging.debug(axis+"is not a valid argument of pidSend. Valid arguments: 'roll', 'pitch', 'yaw', 'all'")
+            return
+        tx_buffer = [self.proto["PID_REQUEST"],spec]
         tx_buffer = struct.pack('<2B',*(tx_buffer))
         self.send_msg(tx_buffer)
 
     def sendBoatDataRequest(self):
-        tx_buffer = [self.BOAT_DATA_REQUEST]
+        tx_buffer = [self.proto["BOAT_DATA_REQUEST"]]
         tx_buffer = struct.pack('<B',*(tx_buffer))
         self.send_msg(tx_buffer)
 
 class odroidClient(QtCore.QRunnable, parser,sender):
-    def __init__(self, addr):
-        super(odroidClient, self).__init__()
+    def __init__(self, addr, protocol):
+        QtCore.QRunnable.__init__(self)
+        sender.__init__(self,protocol)
         self.signals = odroidClientSignals()
+        self.protocol = protocol
         #self.parser = parser()
         self.host = addr[0]
         self.port = addr[1]
@@ -180,6 +173,7 @@ class odroidClient(QtCore.QRunnable, parser,sender):
         self.sendControl([1,30])
         self.sendControl([3, 30])
         self.sendBoatDataRequest()
+        self.sendPIDRequest("all")
         try:
             while self.active:    
                 try:
