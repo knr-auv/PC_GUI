@@ -3,7 +3,7 @@ from PyQt5 import QtWidgets, uic, QtGui, QtCore
 from mainwindow import Ui_MainWindow
 from tools.odroidClient import *
 from tools.streamClient import *
-
+from tools.pad import *
 class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     
     def __init__(self):
@@ -34,7 +34,17 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def connectButtons(self):
         self.connectionBar.b_connect.pressed.connect(self.manageOdroidConnection)
         self.cameraContainer.connectButton.clicked.connect(self.manageStreamConnection)
-    
+        self.boatData.b_stop_sending.clicked.connect(self.startPad)
+
+    def startPad(self):
+        self.timer = QtCore.QTimer()
+        self.timer.setInterval(50)
+        self.pad = PadSteering()
+        self.threadpool.start(self.pad)
+        print(self.pad.get_data())
+        self.timer.timeout.connect(lambda :self.odroidClient.sendPad(self.pad.get_data()))
+        self.timer.start()
+
     def manageOdroidConnection(self):
         if self.odroidClientIsRunning:
             self.stopOdroidConnection()        

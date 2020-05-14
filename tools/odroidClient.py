@@ -67,6 +67,7 @@ class sender():
         self.proto = protocol["TO_ODROID"]
         self.pid_spec = protocol["PID_SPEC"]
         self.control_spec = protocol['CONTROL_SPEC']
+
     def send(self):
         pass
 
@@ -139,7 +140,10 @@ class sender():
         tx_buffer = [self.proto["BOAT_DATA_REQUEST"]]
         tx_buffer = struct.pack('<B',*(tx_buffer))
         self.send_msg(tx_buffer)
-
+    def sendPad(self, data):
+        tx_buffer=[self.proto['PAD']]+data
+        tx_buffer = struct.pack('<B2f3i',*(tx_buffer))
+        self.send_msg(tx_buffer)
 class odroidClient(QtCore.QRunnable, parser,sender):
     def __init__(self, addr, protocol):
         QtCore.QRunnable.__init__(self)
