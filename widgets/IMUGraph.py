@@ -25,9 +25,9 @@ class _plot(pg.PlotWidget):
         self.addLegend(size =(100,30), offset =(30,30))
         #need to change later
         self.setLimits(xMin=0,  
-             minXRange=10, maxXRange=10, 
+             minXRange=10, maxXRange=100, 
              yMin=-180, yMax=180,
-             minYRange=360, maxYRange=360)
+             minYRange=20, maxYRange=360)
         #disabling moving plot with mouse
         self.setMouseEnabled(x = False, y = False)
         #self.setMenuEnabled(enableMenu = False)
@@ -53,7 +53,7 @@ class IMUGraph(QtWidgets.QWidget):
         self.start_time = time.time()
 
     def update(self, arg):
-        if len(self.plot.time) > 1000:
+        if len(self.plot.time) > 500:
             times = time.time()-self.start_time
             self.plot.time = self.plot.time[1:]
             self.plot.roll_data = self.plot.roll_data[1:]

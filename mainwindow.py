@@ -134,11 +134,11 @@ class Ui_MainWindow(object):
         self.verticalLayout_4 = QtWidgets.QVBoxLayout(self.pidSetup)
         self.verticalLayout_4.setObjectName("verticalLayout_4")
         self.verticalLayout_3.addWidget(self.pidSetup)
-        self.pidBoatData = QtWidgets.QWidget(self.pidDataBox)
-        self.pidBoatData.setObjectName("pidBoatData")
-        self.horizontalLayout_7 = QtWidgets.QHBoxLayout(self.pidBoatData)
+        self.pidCamera = cameraContainer(self.pidDataBox)
+        self.pidCamera.setObjectName("pidCamera")
+        self.horizontalLayout_7 = QtWidgets.QHBoxLayout(self.pidCamera)
         self.horizontalLayout_7.setObjectName("horizontalLayout_7")
-        self.verticalLayout_3.addWidget(self.pidBoatData)
+        self.verticalLayout_3.addWidget(self.pidCamera)
         self.horizontalLayout_5.addWidget(self.pidDataBox)
         self.IMUGraph = IMUGraph(self.PID)
         self.IMUGraph.setMinimumSize(QtCore.QSize(500, 500))
@@ -149,6 +149,14 @@ class Ui_MainWindow(object):
         self.tabs.addTab(self.PID, "")
         self.control = QtWidgets.QWidget()
         self.control.setObjectName("control")
+        self.horizontalLayout_8 = QtWidgets.QHBoxLayout(self.control)
+        self.horizontalLayout_8.setObjectName("horizontalLayout_8")
+        self.controlSettings = controlSettings(self.control)
+        self.controlSettings.setObjectName("controlSettings")
+        self.horizontalLayout_8.addWidget(self.controlSettings)
+        self.controlCamera = cameraContainer(self.control)
+        self.controlCamera.setObjectName("controlCamera")
+        self.horizontalLayout_8.addWidget(self.controlCamera)
         self.tabs.addTab(self.control, "")
         self.verticalLayout.addWidget(self.tabs)
         MainWindow.setCentralWidget(self.centralwidget)
@@ -161,7 +169,7 @@ class Ui_MainWindow(object):
         MainWindow.setStatusBar(self.statusbar)
 
         self.retranslateUi(MainWindow)
-        self.tabs.setCurrentIndex(0)
+        self.tabs.setCurrentIndex(2)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
@@ -174,6 +182,7 @@ from widgets.IMUGraph import IMUGraph
 from widgets.boatData import boatData
 from widgets.cameraContainer import cameraContainer
 from widgets.connectionBar import connectionBar
+from widgets.controlSettings import controlSettings
 from widgets.engineData import engineData
 from widgets.pidSetup import pidSetup
 

@@ -4,6 +4,8 @@ from PyQt5 import QtCore
 from concurrent.futures import ThreadPoolExecutor
 
 class odroidClientSignals(QtCore.QObject):
+    armed = QtCore.pyqtSignal()
+    disarmed = QtCore.pyqtSignal()
     receivedPID = QtCore.pyqtSignal(object)
     receivedMotors = QtCore.pyqtSignal(object)
     receivedBoatData = QtCore.pyqtSignal(object)
@@ -58,6 +60,14 @@ class parser():
                 msg = list(msg)
                 msg.pop(0)
                 self.signals.receivedIMUData.emit(msg)
+
+            elif data[0] == proto["CONTROL"]:
+                if data[1]==control_spec["ARMED"]:
+                    logging.debug("ARMED")
+                    self.signals.armed.emit()
+                elif data[1]==control_spec["DISARMED"]:
+                    logging.debug("DISARMED")
+                    self.signals.disarmed.emit()
         except:
             sys.exc_info()
             logging.critical("error while parsing data")
@@ -144,6 +154,7 @@ class sender():
         tx_buffer=[self.proto['PAD']]+data
         tx_buffer = struct.pack('<B2f3i',*(tx_buffer))
         self.send_msg(tx_buffer)
+
 class odroidClient(QtCore.QRunnable, parser,sender):
     def __init__(self, addr, protocol):
         QtCore.QRunnable.__init__(self)
@@ -154,7 +165,16 @@ class odroidClient(QtCore.QRunnable, parser,sender):
         self.host = addr[0]
         self.port = addr[1]
         self.active = True
-            
+
+    def start_telemetry(self, interval):
+        self.sendControl([self.protocol["CONTROL_SPEC"]["START_TELEMETRY"],interval])
+        logging.debug("Starting telemetry")
+    def disarm(self):
+        self.sendControl([self.protocol["CONTROL_SPEC"]["STOP_PID"]])
+        
+    def arm(self, interval= 30):
+        self.sendControl([self.protocol["CONTROL_SPEC"]["START_PID"], interval])
+        
     async def client(self):
         self.signals.connectionInfo.emit(("Connecting to: "+ str(self.host)+":"+str(self.port)))
         try:
@@ -174,8 +194,8 @@ class odroidClient(QtCore.QRunnable, parser,sender):
         DATA = 1
         rx_state = HEADER
         rx_len =0
-        self.sendControl([1,30])
-        self.sendControl([3, 30])
+        self.start_telemetry(30)
+        
         self.sendBoatDataRequest()
         self.sendPIDRequest("all")
         try:
