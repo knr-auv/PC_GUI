@@ -38,11 +38,13 @@ class PadSteering(QtCore.QRunnable):
             self.process_input(i)
 
     def expo(self, input, out_max, index):
+        if(out_max==0):
+            return 0
         return (pow(abs(input), index)/pow(out_max, index))
 
     def map(self,input,in_min,in_max,out_min,out_max):
         return (input-in_min)*(out_max-out_min)/(in_max-in_min)+out_min
-
+    
     def scale(self):
         self.output["vertical"] = int(self.map((self.input["ABS_RZ"]-self.input["ABS_Z"]),-255,255,-self.config['max_vertical'],self.config['max_vertical']))
         self.output["roll"] = -self.map(self.input["ABS_RX"],-32767,32767,-self.config["max_roll"],self.config["max_roll"])
@@ -53,6 +55,10 @@ class PadSteering(QtCore.QRunnable):
     def calculate_expo(self):
         for i in self.output:
             self.output[i]*=self.expo(self.output[i],self.config['max_'+i], self.config[i+'_expo'])
+
+    def get_raw(self):
+        return[self.input["ABS_X"],self.input["ABS_Y"], self.input["ABS_RX"], self.input["ABS_RY"],self.input["ABS_Z"], self.input["ABS_RZ"]]
+
     def get_data(self):
         with self.lock:
             self.scale()    #scale needs to be before expo!!!

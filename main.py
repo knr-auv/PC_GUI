@@ -3,7 +3,7 @@ from PyQt5 import QtWidgets, uic, QtGui, QtCore
 from mainwindow import Ui_MainWindow
 from tools.odroidClient import *
 from tools.streamClient import *
-from tools.pad import *
+
 class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     
     def __init__(self):
@@ -18,7 +18,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.streamClientIsRunning = False
         self.odroidClientIsRunning = False
         self.odroidClientConnected = False
-        self.padTimer = QtCore.QTimer()
+        self.controlSettings.threadpool = self.threadpool
         self.changeWidgets()
         self.connectButtons()
     
@@ -58,28 +58,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     #stuff that will happen after succesful connection    
     def whenConnected(self):
         self.odroidClientConnected = True
-        self.controlSettings.padSettings.connect(lambda arg: self.start_control(arg))
-        self.controlSettings.disarmSignal.connect(self.stop_control)
-
+        
     #connectiong buttons for controlling connection
     def connectButtons(self):
         self.connectionBar.b_connect.pressed.connect(self.manageOdroidConnection)
         self.cameraContainer.connectButton.clicked.connect(self.manageStreamConnection)
-
-    #handling pad control thread. TODO make a class capable of selecting control methods
-    def start_control(self, config):
-        print("starting pad stuff")
-        self.control = PadSteering(config)
-        self.threadpool.start(self.control)
-        self.control.signals.getData_callback.connect(lambda arg: self.odroidClient.sendPad(arg))
-        self.padTimer.setInterval(int(self.controlSettings.l_interval.text()))
-        self.padTimer.timeout.connect(self.control.get_data)
-        self.padTimer.start()
-
-    def stop_control(self):
-        self.padTimer.stop()
-        self.padTimer.timeout.disconnect()
-        self.control.active = False
 
     #establishing connection with odroid
     def manageOdroidConnection(self):
@@ -100,8 +83,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.odroidClient.signals.clientConnected.connect(self.whenConnected)
         self.odroidClient.signals.connectionRefused.connect(self.stopOdroidConnection)
         self.odroidClient.signals.connectionTerminated.connect(self.stopOdroidConnection)
+        self.controlSettings.odroidClient = self.odroidClient
         self.threadpool.start(self.odroidClient)
         self.odroidClientIsRunning= True
+        
 
     def stopOdroidConnection(self):
         if self.odroidClientConnected:

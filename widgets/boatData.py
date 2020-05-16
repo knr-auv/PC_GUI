@@ -12,7 +12,7 @@ class boatData(QtWidgets.QWidget,Ui_boatData):
        self.setStyleSheet(open('style/boatData.css').read())
        self.b_start_sending.clicked.connect(self.start_clicked)
        #self.b_stop_sending.clicked.connect(self.stop_clicked)
-       #self.b_stop_sending.hide()
+       self.b_stop_sending.hide()
 
     def update(self, data):
         text = data.decode('utf-8')
