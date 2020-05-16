@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-import asyncio,socket, struct, logging
+import asyncio,socket, struct, logging, time
 from PyQt5 import QtCore
 
 class streamClientSignals(QtCore.QObject):
@@ -65,13 +65,14 @@ class SimulationClient(QtCore.QRunnable):
         logging.debug("Socket connect port:{}".format(port))
         self.data = b""
         self.frame = None
-
+        
     def run(self):
         self.socket.connect((self.ip, self.port))
         while self.active:
             self.signals.newFrame.emit(self.receive_frame())
-
-
+            #around 50 fps
+            time.sleep(0.02)
+            
     def stop(self):
         self.socket.close()
 
@@ -89,5 +90,4 @@ class SimulationClient(QtCore.QRunnable):
         lenght = struct.unpack('<I', lenght)[0]
         while not(len(self.data) >= lenght):
             self.data += self.socket.recv(4096)
-        self.data = np.fromstring(self.data, np.uint8)
-        return cv2.imdecode(self.data, cv2.IMREAD_COLOR)
+        return self.data

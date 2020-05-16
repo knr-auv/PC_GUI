@@ -38,7 +38,7 @@ class PadSteering(QtCore.QRunnable):
             self.process_input(i)
 
     def expo(self, input, out_max, index):
-        return math.copysign(1,input)*(pow(input, index)/pow(out_max, index))
+        return (pow(abs(input), index)/pow(out_max, index))
 
     def map(self,input,in_min,in_max,out_min,out_max):
         return (input-in_min)*(out_max-out_min)/(in_max-in_min)+out_min
