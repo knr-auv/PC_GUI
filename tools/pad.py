@@ -68,7 +68,7 @@ class PadSteering(QtCore.QRunnable):
     def run(self):
         while self.active:
             self.catch_input()
-            time.sleep(0.02)
+
 if __name__=="__main__":
     a = PadSteering()
     while True:
