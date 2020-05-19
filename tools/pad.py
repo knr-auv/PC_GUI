@@ -66,8 +66,10 @@ class PadSteering(QtCore.QRunnable):
             self.signals.getData_callback.emit([self.output["roll"],self.output["pitch"],int(self.output["yaw"]),int(self.output["vertical"]),int(self.output["throttle"])])
 
     def run(self):
+
         while self.active:
             self.catch_input()
+        self.active = True
 
 if __name__=="__main__":
     a = PadSteering()

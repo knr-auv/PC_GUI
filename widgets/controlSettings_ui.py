@@ -237,10 +237,10 @@ class Ui_controlSettings(object):
         _translate = QtCore.QCoreApplication.translate
         controlSettings.setWindowTitle(_translate("controlSettings", "Form"))
         self.label_14.setText(_translate("controlSettings", "PID interval (ms):"))
-        self.l_PIDInterval.setText(_translate("controlSettings", "22"))
+        self.l_PIDInterval.setText(_translate("controlSettings", "10"))
         self.b_arm.setText(_translate("controlSettings", "Arm"))
         self.label_6.setText(_translate("controlSettings", "Control:"))
-        self.s_control.setItemText(0, _translate("controlSettings", "Autonomy (do zrobienia) na teraz to co jest wybrane nie ma znaczenia"))
+        self.s_control.setItemText(0, _translate("controlSettings", "Autonomy"))
         self.s_control.setItemText(1, _translate("controlSettings", "Pad"))
         self.b_start.setText(_translate("controlSettings", "Start"))
         self.groupBox_3.setTitle(_translate("controlSettings", "Pad specific"))

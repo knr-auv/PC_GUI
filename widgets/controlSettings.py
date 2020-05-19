@@ -23,6 +23,10 @@ class controlSettings(QtWidgets.QWidget,Ui_controlSettings):
        self.expo_plot = expo_plot()
        self.expo_plot.setObjectName("expo_plot")
        self.verticalLayout.addWidget(self.expo_plot)
+       config = self.get_config()
+       self.control = PadSteering(config)
+       self.control.setAutoDelete(False)
+       self.padIsRunning = False
 
        self.b_start.clicked.connect(self.start_pad)
        self.b_arm.setEnabled(False)
@@ -62,6 +66,7 @@ class controlSettings(QtWidgets.QWidget,Ui_controlSettings):
         self.b_arm.disconnect()
         self.b_arm.clicked.connect(self.disarmSignal.emit)
         self.odroidConnected = True
+
         self.control.signals.getData_callback.connect(lambda arg: self.odroidClient.sendPad(arg))
 
     #stuff todo after receiving disarm acknowledge or timeout
@@ -70,7 +75,8 @@ class controlSettings(QtWidgets.QWidget,Ui_controlSettings):
         self.b_arm.disconnect()
         self.b_arm.clicked.connect(self.arm)
         self.b_arm.setText("Arm")
-        self.stop_pad()
+        if self.padIsRunning:
+            self.stop_pad()
         #handling pad control thread. TODO make a class capable of selecting control methods
     def connectSettings(self):
        self.e_pitch.valueChanged.connect(self.update_config)
@@ -102,19 +108,22 @@ class controlSettings(QtWidgets.QWidget,Ui_controlSettings):
 
     def start_pad(self):
         print("starting pad stuff")
-        config = self.get_config()
-        self.control = PadSteering(config)
+        self.b_start.hide()
         self.threadpool.start(self.control)
         self.connectSettings()
         self.b_arm.setEnabled(True)
         self.padTimer.setInterval(int(self.l_interval.text()))
         self.padTimer.timeout.connect(self.control.get_data)
         self.padTimer.start()
+        self.padIsRunning = True
 
     def stop_pad(self):
+        self.padIsRunning = False
+        #print(self.padTimer.receivers(self.padTimer.timeout))
         self.padTimer.stop()
         self.padTimer.timeout.disconnect()
         self.disconnectSettings()
+        self.b_start.show()
         self.b_arm.setEnabled(False)
         self.control.active = False
 
@@ -124,7 +133,7 @@ class expo_plot(pg.PlotWidget):
         super().__init__(*args, **kwargs)
         self.setBackground("w")
         self.x= list(np.arange(-1,1,0.01))
-        self.y= list(np.arange(-1,1, 0.01))
+        self.y= self.calculate_expo(2)
         
         expo_pen = pg.mkPen(color = (0,255,0), width = 2)
         linear_pen = pg.mkPen(color = (0,0,255), width = 2)

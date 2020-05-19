@@ -171,9 +171,11 @@ class odroidClient(QtCore.QRunnable, parser,sender):
         self.sendControl([self.protocol["CONTROL_SPEC"]["START_TELEMETRY"],interval])
         logging.debug("Starting telemetry")
     def disarm(self):
+        logging.debug("DISARMING")
         self.sendControl([self.protocol["CONTROL_SPEC"]["STOP_PID"]])
         
     def arm(self, interval):
+        logging.debug("ARMING")
         self.sendControl([self.protocol["CONTROL_SPEC"]["START_PID"], interval])
         
     async def client(self):
@@ -232,6 +234,7 @@ class odroidClient(QtCore.QRunnable, parser,sender):
         await self.writer.wait_closed()
         self.signals.connectionInfo.emit("Connection terminated")
         self.signals.connectionButton.emit("Connect")
+        self.signals.connectionTerminated.emit()
 
     def run(self):
         asyncio.run(self.client(), debug = True)
@@ -240,15 +243,15 @@ class odroidClient(QtCore.QRunnable, parser,sender):
         async def coro():
             self.reader_task.cancel() 
         self.active = False
-        try:
+        if self.client_loop.is_running():
             asyncio.run_coroutine_threadsafe(coro(), self.client_loop)
-        except AttributeError:
-            pass
+
         
     def send(self, data):
         async def write():
             self.writer.write(data)
-            await self.writer.drain()       
-        asyncio.run_coroutine_threadsafe(write(), self.client_loop)
+            await self.writer.drain()
+        if self.client_loop.is_running():
+            asyncio.run_coroutine_threadsafe(write(), self.client_loop)
 
 

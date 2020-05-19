@@ -54,11 +54,14 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.pidCamera.clientData.hide()
         self.controlCamera.connectButton.hide()
         self.controlCamera.clientData.hide()
-        pass
+
     #stuff that will happen after succesful connection    
     def whenConnected(self):
         self.odroidClientConnected = True
-        
+
+    def whenDisconnected(self):
+        self.controlSettings.disarmed()
+
     #connectiong buttons for controlling connection
     def connectButtons(self):
         self.connectionBar.b_connect.pressed.connect(self.manageOdroidConnection)
@@ -83,6 +86,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.odroidClient.signals.clientConnected.connect(self.whenConnected)
         self.odroidClient.signals.connectionRefused.connect(self.stopOdroidConnection)
         self.odroidClient.signals.connectionTerminated.connect(self.stopOdroidConnection)
+        self.odroidClient.signals.connectionTerminated.connect(self.whenDisconnected)
         self.controlSettings.odroidClient = self.odroidClient
         self.threadpool.start(self.odroidClient)
         self.odroidClientIsRunning= True
