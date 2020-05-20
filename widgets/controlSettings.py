@@ -1,4 +1,4 @@
-from PyQt5 import QtWidgets, QtCore
+from PyQt5 import QtWidgets, QtCore, QtGui
 from .controlSettings_ui import Ui_controlSettings
 from pyqtgraph import PlotWidget, plot
 import pyqtgraph as pg
@@ -19,22 +19,22 @@ class controlSettings(QtWidgets.QWidget,Ui_controlSettings):
        self.lock = threading.Lock()
        self.b_arm.clicked.connect(self.arm)
        self.armTimeout = QtCore.QTimer()
-       self.padTimer = QtCore.QTimer()
+       self.controlTimer = QtCore.QTimer()
        self.expo_plot = expo_plot()
        self.expo_plot.setObjectName("expo_plot")
        self.verticalLayout.addWidget(self.expo_plot)
-       config = self.get_config()
-       self.control = PadSteering(config)
-       self.control.setAutoDelete(False)
-       self.padIsRunning = False
-
-       self.b_start.clicked.connect(self.start_pad)
+       self.keyboard_widget = keyboard_widget()
+       self.verticalLayout.addWidget(self.keyboard_widget)
+       self.s_control.activated.connect(self.manage_control)
+       self.b_start.clicked.connect(self.start_keyboard)
        self.b_arm.setEnabled(False)
        self.e_pitch.valueChanged.connect(self.expo_plot.update)
        self.e_yaw.valueChanged.connect(self.expo_plot.update)
        self.e_roll.valueChanged.connect(self.expo_plot.update)
        self.e_vertical.valueChanged.connect(self.expo_plot.update)
        self.e_throttle.valueChanged.connect(self.expo_plot.update)
+
+       self.manage_control(1)
 
     def get_config(self):
         config={'pad_deadzone':int(self.e_deadzone.text()),
@@ -66,8 +66,8 @@ class controlSettings(QtWidgets.QWidget,Ui_controlSettings):
         self.b_arm.disconnect()
         self.b_arm.clicked.connect(self.disarmSignal.emit)
         self.odroidConnected = True
-
-        self.control.signals.getData_callback.connect(lambda arg: self.odroidClient.sendPad(arg))
+        self.keyboard_widget.getData_callback.connect(lambda arg: self.odroidClient.sendPad(arg))
+        #self.control.signals.getData_callback.connect(lambda arg: self.odroidClient.sendPad(arg))
 
     #stuff todo after receiving disarm acknowledge or timeout
     def disarmed(self):
@@ -105,27 +105,134 @@ class controlSettings(QtWidgets.QWidget,Ui_controlSettings):
     def update_config(self):
         with self.lock:
             self.control.config=self.get_config()
+    
+    def manage_control(self, x):
+        if self.s_control.currentText()=="Keyboard":
+            self.keyboard_widget.setFocus()
+            self.keyboard_widget.show()
+            self.padSpec.hide()
+            self.expo_plot.hide()
+            pass
+        if self.s_control.currentText()=="Pad":
+            self.keyboard_widget.hide()
+            self.padSpec.show()
+            self.expo_plot.show()
+            pass
+
+    def start_keyboard(self):
+        logging.debug("starting keyboard control")
+        self.b_start.hide()
+        self.b_arm.setEnabled(True)
+        self.controlTimer.setInterval(int(self.l_interval.text()))
+        self.controlTimer.timeout.connect(self.keyboard_widget.get_data)
+        self.controlTimer.start()
+
+    def stop_keyboard(self):
+        self.b_start.show()
+        self.controlTimer.stop()
+        self.controlTimer.timeout.disconnect()
+        self.b_start.show()
+        self.b_arm.setEnabled(False)
 
     def start_pad(self):
         print("starting pad stuff")
         self.b_start.hide()
+        config = self.get_config()
+        self.control = PadSteering(config)
+        self.padIsRunning = False
         self.threadpool.start(self.control)
         self.connectSettings()
         self.b_arm.setEnabled(True)
-        self.padTimer.setInterval(int(self.l_interval.text()))
-        self.padTimer.timeout.connect(self.control.get_data)
-        self.padTimer.start()
+        self.controlTimer.setInterval(int(self.l_interval.text()))
+        self.controlTimer.timeout.connect(self.control.get_data)
+        self.controlTimer.start()
         self.padIsRunning = True
+
 
     def stop_pad(self):
         self.padIsRunning = False
-        #print(self.padTimer.receivers(self.padTimer.timeout))
-        self.padTimer.stop()
-        self.padTimer.timeout.disconnect()
+        #print(self.controlTimer.receivers(self.controlTimer.timeout))
+        self.controlTimer.stop()
+        self.controlTimer.timeout.disconnect()
         self.disconnectSettings()
         self.b_start.show()
         self.b_arm.setEnabled(False)
         self.control.active = False
+
+class keyboard_widget(QtWidgets.QWidget):
+    getData_callback = QtCore.pyqtSignal(object)
+
+    def __init__(self,parent=None):
+       QtWidgets.QWidget.__init__(self,parent)
+       mainLayout= QtWidgets.QVBoxLayout()
+       joystickLayout = QtWidgets.QHBoxLayout()
+       joystick_l_Layout = QtWidgets.QVBoxLayout()
+       self.l1 = QtWidgets.QLabel(parent)
+       self.l2 = QtWidgets.QLabel(parent)
+       self.jb = pg.JoystickButton()
+       self.jb.setFixedWidth(200)
+       self.jb.setFixedHeight(200)
+       #self.setStyleSheet("background-color: green;")
+       font = QtGui.QFont()
+       font.setPointSize(15)
+       self.l1.setFont(font)
+       self.l2.setFont(font)
+       joystickLayout.addWidget(self.jb)
+       joystick_l_Layout.addWidget(self.l1)
+       joystick_l_Layout.addWidget(self.l2)
+       self.l1.setMaximumSize(QtCore.QSize(16777215, 95))
+       self.l2.setMaximumSize(QtCore.QSize(16777215, 95))
+       self.l1.setText("  X :")
+       self.l2.setText("  Y :")
+       self.output = {"vertical": 0, 'roll':0, 'pitch':0, "yaw":0, "throttle":0}
+       self.key_assignment ={"forward":0,
+                             "backward":0,
+                             "roll":0,
+                             "pitch":0,
+                             "left":0,
+                             "right":0,
+                             "up":QtCore.Qt.Key_W,
+                             "down":QtCore.Qt.Key_S
+                             }
+       self.key_mem = {QtCore.Qt.Key_W:0, QtCore.Qt.Key_S:0}
+       joystickLayout.addLayout(joystick_l_Layout)
+       #keeping focus while using arrows...
+       for child in self.findChildren(QtGui.QWidget):
+                child.setFocusPolicy(QtCore.Qt.NoFocus)
+       self.x = 0
+       self.y = 0
+
+       self.setLayout(mainLayout)
+       mainLayout.addLayout(joystickLayout)
+
+
+    def keyPressEvent(self, event):
+        if not event.isAutoRepeat():
+            self.key_mem[event.key()] = True
+
+    def keyReleaseEvent(self, event):
+        if not event.isAutoRepeat():
+            self.key_mem[event.key()] = False
+
+    def get_data(self):
+       self.x, self.y = self.jb.getState()
+       self.x *=300
+       self.y *= 800
+       self.output["throttle"] = self.y
+       self.output["yaw"]= self.x
+       try:
+           if self.key_mem[self.key_assignment["up"]] == True:
+               self.output["vertical"]+=10
+           if self.key_mem[self.key_assignment["down"]] == True:
+              self.output["vertical"]-=10
+           if self.key_mem[self.key_assignment["down"]] == False and self.key_mem[self.key_assignment["up"]] == False:
+               self.output["vertical"]*=-0.7
+       except KeyError:
+           self.output["vertical"] = 0
+       self.l1.setText("  X : %.2f" %self.x)
+       self.l2.setText("  Y : %.2f" %self.y)
+
+       self.getData_callback.emit([self.output["roll"],self.output["pitch"],int(self.output["yaw"]),int(self.output["vertical"]),int(self.output["throttle"])])
 
 class expo_plot(pg.PlotWidget):
     def __init__(self, *args, **kwargs):
