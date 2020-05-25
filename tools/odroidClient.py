@@ -151,7 +151,7 @@ class sender():
         tx_buffer = struct.pack('<B',*(tx_buffer))
         self.send_msg(tx_buffer)
 
-    def sendPad(self, data):
+    def sendInput(self, data):
         tx_buffer=[self.proto['PAD']]+data
         tx_buffer = struct.pack('<B2f3i',*(tx_buffer))
         self.send_msg(tx_buffer)
@@ -243,8 +243,12 @@ class odroidClient(QtCore.QRunnable, parser,sender):
         async def coro():
             self.reader_task.cancel() 
         self.active = False
-        if self.client_loop.is_running():
-            asyncio.run_coroutine_threadsafe(coro(), self.client_loop)
+        try:
+            if self.client_loop.is_running():
+                asyncio.run_coroutine_threadsafe(coro(), self.client_loop)  
+        except AttributeError:
+            pass
+
 
         
     def send(self, data):

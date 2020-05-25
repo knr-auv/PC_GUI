@@ -4,18 +4,18 @@ from pyqtgraph import PlotWidget, plot
 import pyqtgraph as pg
 import numpy as np
 import math, threading
-from tools.pad import *
+from tools.Control.pad import *
+from tools.Control.keyboard import *
 
 class controlSettings(QtWidgets.QWidget,Ui_controlSettings):
     armSignal = QtCore.pyqtSignal(object)
     disarmSignal = QtCore.pyqtSignal()
-
     odroidClient = None
     threadpool = None
 
     def __init__(self,parent=None):
        QtWidgets.QWidget.__init__(self,parent)
-       self.setupUi(self)   
+       self.setupUi(self)
        self.lock = threading.Lock()
        self.b_arm.clicked.connect(self.arm)
        self.armTimeout = QtCore.QTimer()
@@ -23,18 +23,19 @@ class controlSettings(QtWidgets.QWidget,Ui_controlSettings):
        self.expo_plot = expo_plot()
        self.expo_plot.setObjectName("expo_plot")
        self.verticalLayout.addWidget(self.expo_plot)
-       self.keyboard_widget = keyboard_widget()
+       self.keyboard_widget = keyboard_widget(self)
        self.verticalLayout.addWidget(self.keyboard_widget)
+        
        self.s_control.activated.connect(self.manage_control)
-       self.b_start.clicked.connect(self.start_keyboard)
+       self.b_start.clicked.connect(self.startCtr)
        self.b_arm.setEnabled(False)
        self.e_pitch.valueChanged.connect(self.expo_plot.update)
        self.e_yaw.valueChanged.connect(self.expo_plot.update)
        self.e_roll.valueChanged.connect(self.expo_plot.update)
        self.e_vertical.valueChanged.connect(self.expo_plot.update)
        self.e_throttle.valueChanged.connect(self.expo_plot.update)
-
        self.manage_control(1)
+       self.controlStarted = False
 
     def get_config(self):
         config={'pad_deadzone':int(self.e_deadzone.text()),
@@ -64,10 +65,9 @@ class controlSettings(QtWidgets.QWidget,Ui_controlSettings):
         self.b_arm.setEnabled(True)
         self.b_arm.setText("Disarm")
         self.b_arm.disconnect()
+        self.getData_callback.connect(lambda arg: self.odroidClient.sendInput(arg))
         self.b_arm.clicked.connect(self.disarmSignal.emit)
         self.odroidConnected = True
-        self.keyboard_widget.getData_callback.connect(lambda arg: self.odroidClient.sendPad(arg))
-        #self.control.signals.getData_callback.connect(lambda arg: self.odroidClient.sendPad(arg))
 
     #stuff todo after receiving disarm acknowledge or timeout
     def disarmed(self):
@@ -75,8 +75,7 @@ class controlSettings(QtWidgets.QWidget,Ui_controlSettings):
         self.b_arm.disconnect()
         self.b_arm.clicked.connect(self.arm)
         self.b_arm.setText("Arm")
-        if self.padIsRunning:
-            self.stop_pad()
+        self.stopCtr()
         #handling pad control thread. TODO make a class capable of selecting control methods
     def connectSettings(self):
        self.e_pitch.valueChanged.connect(self.update_config)
@@ -108,131 +107,371 @@ class controlSettings(QtWidgets.QWidget,Ui_controlSettings):
     
     def manage_control(self, x):
         if self.s_control.currentText()=="Keyboard":
+
             self.keyboard_widget.setFocus()
             self.keyboard_widget.show()
+            self.b_start.setEnabled(True)
             self.padSpec.hide()
             self.expo_plot.hide()
             pass
         if self.s_control.currentText()=="Pad":
             self.keyboard_widget.hide()
+            self.b_start.setEnabled(False)
             self.padSpec.show()
             self.expo_plot.show()
             pass
+    getData_callback = QtCore.pyqtSignal(object)
+    def startCtr(self):
+        self.s_control.setEnabled(False)
+        self.controlStarted = True
+        if self.s_control.currentText() == "Keyboard":
+            self.control = Keyboard()
+            self.keyboard_widget.disableButtons()
+            self.control.setKeyAssignment(self.keyboard_widget.key_assignment)
+            self.control.setConfig(self.keyboard_widget.getConfig())
+            self.control.getData_callback = self.getData_callback 
+            self.keyboard_widget.configChanged.connect(self.control.setConfig)
+            self.memKP = self.keyPressEvent
+            self.memKR = self.keyReleaseEvent
+            #maybe use Qshortcut insteaqd of disabling keyboard...
+            self.grabKeyboard()
+            self.keyPressEvent = self.control.keyPressEvent
+            self.keyReleaseEvent = self.control.keyReleaseEvent
 
-    def start_keyboard(self):
-        logging.debug("starting keyboard control")
+        if self.s_control.currentText == "Pad":
+            pass
+
+        if self.s_control.currentText()=="Autonomy":
+            pass
+
+        #common stuff for each controller except autonomy...
         self.b_start.hide()
-        self.b_arm.setEnabled(True)
-        self.controlTimer.setInterval(int(self.l_interval.text()))
-        self.controlTimer.timeout.connect(self.keyboard_widget.get_data)
-        self.controlTimer.start()
-
-    def stop_keyboard(self):
-        self.b_start.show()
-        self.controlTimer.stop()
-        self.controlTimer.timeout.disconnect()
-        self.b_start.show()
-        self.b_arm.setEnabled(False)
-
-    def start_pad(self):
-        print("starting pad stuff")
-        self.b_start.hide()
-        config = self.get_config()
-        self.control = PadSteering(config)
-        self.padIsRunning = False
-        self.threadpool.start(self.control)
-        self.connectSettings()
         self.b_arm.setEnabled(True)
         self.controlTimer.setInterval(int(self.l_interval.text()))
         self.controlTimer.timeout.connect(self.control.get_data)
         self.controlTimer.start()
-        self.padIsRunning = True
 
+    def stopCtr(self):
+        if self.controlStarted==False:
+            return
+        self.s_control.setEnabled(True)
+        if self.control.mode =="keyboard":
+            self.keyPressEvent = self.memKP
+            self.keyReleaseEvent = self.memKR
+            self.releaseKeyboard()
+            self.keyboard_widget.enableButtons()
+            self.keyboard_widget.configChanged.disconnect()
+            pass
+        elif self.control.mode == "pad":
+            pass
+        elif self.control.mode =="autonomy":
+            pass
+        #common stuff for each controller except autonomy...
 
-    def stop_pad(self):
-        self.padIsRunning = False
-        #print(self.controlTimer.receivers(self.controlTimer.timeout))
+        self.b_start.show()
         self.controlTimer.stop()
         self.controlTimer.timeout.disconnect()
-        self.disconnectSettings()
         self.b_start.show()
         self.b_arm.setEnabled(False)
-        self.control.active = False
 
 class keyboard_widget(QtWidgets.QWidget):
     getData_callback = QtCore.pyqtSignal(object)
-
+    configChanged =      QtCore.pyqtSignal(object)   
     def __init__(self,parent=None):
        QtWidgets.QWidget.__init__(self,parent)
-       mainLayout= QtWidgets.QVBoxLayout()
-       joystickLayout = QtWidgets.QHBoxLayout()
-       joystick_l_Layout = QtWidgets.QVBoxLayout()
-       self.l1 = QtWidgets.QLabel(parent)
-       self.l2 = QtWidgets.QLabel(parent)
-       self.jb = pg.JoystickButton()
-       self.jb.setFixedWidth(200)
-       self.jb.setFixedHeight(200)
+
        #self.setStyleSheet("background-color: green;")
-       font = QtGui.QFont()
-       font.setPointSize(15)
-       self.l1.setFont(font)
-       self.l2.setFont(font)
-       joystickLayout.addWidget(self.jb)
-       joystick_l_Layout.addWidget(self.l1)
-       joystick_l_Layout.addWidget(self.l2)
-       self.l1.setMaximumSize(QtCore.QSize(16777215, 95))
-       self.l2.setMaximumSize(QtCore.QSize(16777215, 95))
-       self.l1.setText("  X :")
-       self.l2.setText("  Y :")
-       self.output = {"vertical": 0, 'roll':0, 'pitch':0, "yaw":0, "throttle":0}
-       self.key_assignment ={"forward":0,
-                             "backward":0,
-                             "roll":0,
-                             "pitch":0,
-                             "left":0,
-                             "right":0,
-                             "up":QtCore.Qt.Key_W,
-                             "down":QtCore.Qt.Key_S
-                             }
-       self.key_mem = {QtCore.Qt.Key_W:0, QtCore.Qt.Key_S:0}
-       joystickLayout.addLayout(joystick_l_Layout)
-       #keeping focus while using arrows...
-       for child in self.findChildren(QtGui.QWidget):
-                child.setFocusPolicy(QtCore.Qt.NoFocus)
-       self.x = 0
-       self.y = 0
+       self.key_assignment = {"forward":QtCore.Qt.Key_W,
+                        "backward":QtCore.Qt.Key_S,
+                        "roll_left":QtCore.Qt.Key_Q,
+                        "roll_right":QtCore.Qt.Key_E,
+                        "pitch_forward":QtCore.Qt.Key_R,
+                        "pitch_backward":QtCore.Qt.Key_F,
+                        "yaw_left":QtCore.Qt.Key_A,
+                        "yaw_right":QtCore.Qt.Key_D,
+                        "emerge":QtCore.Qt.Key_Up,
+                        "submerge":QtCore.Qt.Key_Down
+                        }
 
+       self.l_forward = QtWidgets.QLabel(self)
+       self.l_backward = QtWidgets.QLabel(self)
+       self.l_yaw_l = QtWidgets.QLabel(self)
+       self.l_yaw_r = QtWidgets.QLabel(self)
+       self.l_emerge = QtWidgets.QLabel(self)
+       self.l_submerge = QtWidgets.QLabel(self)
+       self.l_roll_l = QtWidgets.QLabel(self)
+       self.l_roll_r = QtWidgets.QLabel(self)
+       self.l_pitch_f = QtWidgets.QLabel(self)
+       self.l_pitch_b = QtWidgets.QLabel(self)
+
+       self.l_forward.setAccessibleName("forward")
+       self.l_backward.setAccessibleName("backward")
+       self.l_yaw_l.setAccessibleName("yaw_left")
+       self.l_yaw_r.setAccessibleName("yaw_right")
+       self.l_emerge.setAccessibleName("emerge")
+       self.l_submerge.setAccessibleName("submerge")
+       self.l_roll_l.setAccessibleName("roll_left")
+       self.l_roll_r.setAccessibleName("roll_right")
+       self.l_pitch_f.setAccessibleName("pitch_forward")
+       self.l_pitch_b.setAccessibleName("pitch_backward")
+
+       self.b_forward = QtWidgets.QPushButton(self)
+       self.b_backward  = QtWidgets.QPushButton(self)
+       self.b_yaw_l = QtWidgets.QPushButton(self)
+       self.b_yaw_r = QtWidgets.QPushButton(self)
+       self.b_emerge = QtWidgets.QPushButton(self)
+       self.b_submerge = QtWidgets.QPushButton(self)
+       self.b_roll_l = QtWidgets.QPushButton(self)
+       self.b_roll_r = QtWidgets.QPushButton(self)
+       self.b_pitch_f = QtWidgets.QPushButton(self)
+       self.b_pitch_b = QtWidgets.QPushButton(self)
+
+       self.l_forward.setText("Forward")
+       self.l_backward.setText("Backward")
+       self.l_yaw_l.setText("Yaw left")
+       self.l_yaw_r.setText("Yaw right")
+       self.l_emerge.setText("Emerge")
+       self.l_submerge.setText("Submerge")
+       self.l_roll_l.setText ("Roll left")
+       self.l_roll_r.setText ("Roll right")
+       self.l_pitch_f.setText("Pitch forward")
+       self.l_pitch_b.setText("Pitch backward")
+
+       self.b_forward.setText("W")
+       self.b_backward.setText("S")
+       self.b_yaw_l.setText("A")
+       self.b_yaw_r.setText("D")
+       self.b_emerge.setText("Up")
+       self.b_submerge.setText("Down")
+       self.b_roll_l.setText("Q")
+       self.b_roll_r.setText("E")
+       self.b_pitch_f.setText("R")
+       self.b_pitch_b.setText("F")
+
+
+       rate_box = QtWidgets.QGroupBox(self)
+       limit_box = QtWidgets.QGroupBox(self)
+
+       limit_box.setTitle("Limits")
+       rate_box.setTitle("Rates")
+
+       self.l1_throttle = QtWidgets.QLabel(self)
+       self.l1_yaw = QtWidgets.QLabel(self)
+       self.l1_roll = QtWidgets.QLabel(self)
+       self.l1_pitch = QtWidgets.QLabel(self)
+       self.l1_vertical = QtWidgets.QLabel(self)
+
+       self.l1_throttle.setText("Throttle")
+       self.l1_yaw.setText("Yaw")
+       self.l1_vertical.setText("Vertical")
+       self.l1_roll.setText("Roll")
+       self.l1_pitch.setText("Pitch")
+
+       self.l2_throttle = QtWidgets.QLabel(self)
+       self.l2_yaw = QtWidgets.QLabel(self)
+       self.l2_roll = QtWidgets.QLabel(self)
+       self.l2_pitch = QtWidgets.QLabel(self)
+       self.l2_vertical = QtWidgets.QLabel(self)
+
+       self.l2_throttle.setText("Throttle")
+       self.l2_yaw.setText("Yaw")
+       self.l2_vertical.setText("Vertical")
+       self.l2_roll.setText("Roll")
+       self.l2_pitch.setText("Pitch")
+
+       self.s_pitch_rate = QtWidgets.QSpinBox(rate_box)
+       self.s_roll_rate = QtWidgets.QSpinBox(rate_box)
+       self.s_throttle_rate = QtWidgets.QSpinBox(rate_box)
+       self.s_vertical_rate = QtWidgets.QSpinBox(rate_box)
+       self.s_yaw_rate = QtWidgets.QSpinBox(rate_box)
+
+       self.s_pitch_limit = QtWidgets.QSpinBox(limit_box)
+       self.s_roll_limit = QtWidgets.QSpinBox(limit_box)             
+       self.s_throttle_limit = QtWidgets.QSpinBox(limit_box)
+       self.s_vertical_limit = QtWidgets.QSpinBox(limit_box)
+       self.s_yaw_limit = QtWidgets.QSpinBox(limit_box)
+
+       mainLayout= QtWidgets.QVBoxLayout()
+       assignmentLayout = QtWidgets.QGridLayout()
+       specLayout = QtWidgets.QHBoxLayout()
+       rateLayout = QtWidgets.QGridLayout()
+       limitLayout = QtWidgets.QGridLayout()
+
+       limitLayout.addWidget(self.l1_roll,0,0)
+       limitLayout.addWidget(self.l1_pitch,1,0)
+       limitLayout.addWidget(self.l1_yaw,2,0)
+       limitLayout.addWidget(self.l1_vertical,3,0)
+       limitLayout.addWidget(self.l1_throttle,4,0)
+
+       limitLayout.addWidget(self.s_roll_limit,0,1)
+       limitLayout.addWidget(self.s_pitch_limit,1,1)
+       limitLayout.addWidget(self.s_yaw_limit,2,1)
+       limitLayout.addWidget(self.s_vertical_limit,3,1)
+       limitLayout.addWidget(self.s_throttle_limit,4,1)
+
+       rateLayout.addWidget(self.l2_roll,0,0)
+       rateLayout.addWidget(self.l2_pitch,1,0)
+       rateLayout.addWidget(self.l2_yaw,2,0)
+       rateLayout.addWidget(self.l2_vertical,3,0)
+       rateLayout.addWidget(self.l2_throttle,4,0)
+
+       rateLayout.addWidget(self.s_roll_rate,0,1)
+       rateLayout.addWidget(self.s_pitch_rate,1,1)
+       rateLayout.addWidget(self.s_yaw_rate,2,1)
+       rateLayout.addWidget(self.s_vertical_rate,3,1)
+       rateLayout.addWidget(self.s_throttle_rate,4,1)
+
+       rate_box.setLayout(rateLayout)
+       limit_box.setLayout(limitLayout)
+       sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Maximum)
+       rate_box.setSizePolicy(sizePolicy)
+       limit_box.setSizePolicy(sizePolicy)
+       specLayout.addWidget(rate_box)
+       specLayout.addWidget(limit_box)
+
+       mainLayout.addLayout(specLayout)
+
+       assignmentLayout.addWidget(self.l_forward,0,0)
+       assignmentLayout.addWidget(self.l_backward,1,0)
+       assignmentLayout.addWidget(self.l_yaw_l,2,0)
+       assignmentLayout.addWidget(self.l_yaw_r,3,0)
+       assignmentLayout.addWidget(self.l_emerge,4,0)
+       assignmentLayout.addWidget(self.l_submerge,5,0)
+       assignmentLayout.addWidget(self.l_roll_l,6,0)
+       assignmentLayout.addWidget(self.l_roll_r,7,0)
+       assignmentLayout.addWidget(self.l_pitch_f,8,0)
+       assignmentLayout.addWidget(self.l_pitch_b,9,0)
+
+       assignmentLayout.addWidget(self.b_forward,0,1)
+       assignmentLayout.addWidget(self.b_backward,1,1)
+       assignmentLayout.addWidget(self.b_yaw_l,2,1)
+       assignmentLayout.addWidget(self.b_yaw_r,3,1)
+       assignmentLayout.addWidget(self.b_emerge,4,1)
+       assignmentLayout.addWidget(self.b_submerge,5,1)
+       assignmentLayout.addWidget(self.b_roll_l,6,1)
+       assignmentLayout.addWidget(self.b_roll_r,7,1)
+       assignmentLayout.addWidget(self.b_pitch_f,8,1)
+       assignmentLayout.addWidget(self.b_pitch_b,9,1)
+
+       mainLayout.addLayout(assignmentLayout)
+       self.b_backward.clicked.connect(lambda: self.dialog(self.l_backward,self.b_backward))
+       self.b_forward.clicked.connect(lambda: self.dialog(self.l_forward, self.b_forward))
+       self.b_yaw_l.clicked.connect(lambda: self.dialog(self.l_yaw_l, self.b_yaw_l))
+       self.b_yaw_r.clicked.connect(lambda: self.dialog(self.l_yaw_r, self.b_yaw_r))
+       self.b_emerge.clicked.connect(lambda: self.dialog(self.l_emerge, self.b_emerge))
+       self.b_submerge.clicked.connect(lambda: self.dialog(self.l_submerge, self.b_submerge))
+       self.b_roll_r.clicked.connect(lambda: self.dialog(self.l_roll_r, self.b_roll_r))
+       self.b_roll_l.clicked.connect(lambda: self.dialog(self.l_roll_l, self.b_roll_l))
+       self.b_pitch_f.clicked.connect(lambda: self.dialog(self.l_pitch_f, self.b_pitch_f))
+       self.b_pitch_b.clicked.connect(lambda: self.dialog(self.l_pitch_b, self.b_pitch_b))
+       sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Minimum)
+       self.setSizePolicy(sizePolicy)
+       mainLayout.addStretch()
        self.setLayout(mainLayout)
-       mainLayout.addLayout(joystickLayout)
+       rateLayout.widget
+       for i in rate_box.findChildren(QtWidgets.QSpinBox):
+           i.setMaximum(100)
+           i.setValue(50)
+           i.setSingleStep(5)
+           i.setMinimum(0)
+       for i in limit_box.findChildren(QtWidgets.QSpinBox):
+           i.setMaximum(1000)
+           i.setValue(500)
+           i.setSingleStep(50)
+           i.setMinimum(0)
+     
+       self.s_roll_rate.setValue(5)
+       self.s_roll_rate.setSingleStep(1)
+       self.s_roll_limit.setValue(45)
+       self.s_roll_limit.setSingleStep(1)
+       self.s_roll_limit.setSuffix("°")
+
+       self.s_pitch_rate.setValue(5)
+       self.s_pitch_rate.setSingleStep(1)
+       self.s_pitch_limit.setValue(45)
+       self.s_pitch_limit.setSingleStep(1)
+       self.s_pitch_limit.setSuffix("°")
+       for i in self.findChildren(QtWidgets.QSpinBox):
+            i.valueChanged.connect(lambda: self.configChanged.emit(self.getConfig()))
+       mainLayout.setContentsMargins(0,0,0,0)
+
+    def enableButtons(self):
+        for i in self.findChildren(QtWidgets.QPushButton):
+            i.setEnabled(True)
+
+    def disableButtons(self):
+        for i in self.findChildren(QtWidgets.QPushButton):
+            i.setEnabled(False)
+
+    def dialog(self,label, button):
+        self.d = QtWidgets.QWidget(self)
+        
+        a2k = {
+            QtCore.Qt.Key_Up:"Up",
+            QtCore.Qt.Key_Down:"Down",
+            QtCore.Qt.Key_Right:"Right",
+            QtCore.Qt.Key_Left:"Left",
+            QtCore.Qt.Key_Space:"Space",
+            QtCore.Qt.Key_Home:"Home",
+            QtCore.Qt.Key_Tab:"Tab",
+            QtCore.Qt.Key_Enter:"Enter",
+            QtCore.Qt.Key_Return:"Return",
+            QtCore.Qt.Key_Insert:"Insert",
+            QtCore.Qt.Key_Delete:"Delete",
+            QtCore.Qt.Key_Pause:"Pause",
+            QtCore.Qt.Key_Print:"Print"
+            }
 
 
-    def keyPressEvent(self, event):
-        if not event.isAutoRepeat():
-            self.key_mem[event.key()] = True
+        def keyPE(event):
+            if event.isAutoRepeat():
+                return
+            if event.key()==QtCore.Qt.Key_Escape:
+                self.d.close()
+                return
+            self.key_assignment[label.accessibleName()]=event.key()
+            tb = event.text().capitalize()
+            if tb == "" or tb == " " or tb == chr(13) or tb == chr(9):
+                try:
+                    tb = a2k[event.key()]
+                except KeyError:
+                    tb = str(event.key())   
+            button.setText(tb)
+            self.d.close()
+        
+        l = QtWidgets.QVBoxLayout()
+        l1 = QtWidgets.QLabel("Assign key to '"+label.text()+"'")
+        l2 = QtWidgets.QLabel("Press 'Esc' to cancel")
+        l1.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
+        l2.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
+        self.d.keyPressEvent = keyPE
+        l.addWidget(l1)
+        l.addWidget(l2)
+        self.d.setMinimumSize(QtCore.QSize(200, 200))
+        self.d.setWindowModality(QtCore.Qt.ApplicationModal)
+        self.d.setWindowFlags(QtCore.Qt.FramelessWindowHint|QtCore.Qt.Dialog)
+        self.d.setLayout(l)
+        self.d.show()
 
-    def keyReleaseEvent(self, event):
-        if not event.isAutoRepeat():
-            self.key_mem[event.key()] = False
+    def getConfig(self):
+        control_spec = {"throttle_rate":int(self.s_throttle_rate.text()),
+                             "throttle_stop":0.7,
+                             "vertical_rate":int(self.s_vertical_rate.text()),
+                             "vertical_stop":0.7,
+                             "yaw_rate":int(self.s_yaw_rate.text()),
+                             "yaw_stop":0.0,
+                             "roll_stop":0,
+                             "pitch_stop":0,
+                             "throttle_limit":int(self.s_throttle_limit.text()),
+                             "yaw_limit":int(self.s_yaw_limit.text()),
+                             "vertical_limit":int(self.s_vertical_limit.text()),
+                             "roll_rate":int(self.s_roll_rate.text()),
+                             "roll_limit":int(self.s_roll_limit.text().replace('°','')),
+                             "pitch_rate":int(self.s_pitch_rate.text()),
+                             "pitch_limit":int(self.s_pitch_limit.text().replace('°',''))
+                             }
+        return control_spec
 
-    def get_data(self):
-       self.x, self.y = self.jb.getState()
-       self.x *=300
-       self.y *= 800
-       self.output["throttle"] = self.y
-       self.output["yaw"]= self.x
-       try:
-           if self.key_mem[self.key_assignment["up"]] == True:
-               self.output["vertical"]+=10
-           if self.key_mem[self.key_assignment["down"]] == True:
-              self.output["vertical"]-=10
-           if self.key_mem[self.key_assignment["down"]] == False and self.key_mem[self.key_assignment["up"]] == False:
-               self.output["vertical"]*=-0.7
-       except KeyError:
-           self.output["vertical"] = 0
-       self.l1.setText("  X : %.2f" %self.x)
-       self.l2.setText("  Y : %.2f" %self.y)
-
-       self.getData_callback.emit([self.output["roll"],self.output["pitch"],int(self.output["yaw"]),int(self.output["vertical"]),int(self.output["throttle"])])
 
 class expo_plot(pg.PlotWidget):
     def __init__(self, *args, **kwargs):
@@ -241,7 +480,7 @@ class expo_plot(pg.PlotWidget):
         self.setBackground("w")
         self.x= list(np.arange(-1,1,0.01))
         self.y= self.calculate_expo(2)
-        
+
         expo_pen = pg.mkPen(color = (0,255,0), width = 2)
         linear_pen = pg.mkPen(color = (0,0,255), width = 2)
         self.addLine(y=0)

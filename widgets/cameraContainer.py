@@ -9,19 +9,32 @@ class cameraContainer(QtWidgets.QWidget, Ui_cameraContainer):
         self.setupUi(self)
         self.connectButton.clicked.connect(self.start_client)
         self.client = False
+        self.logo = QtGui.QPixmap("img/LOGO_OKON1.png")
+        self.framelabel.setPixmap(self.logo.scaled(self.framelabel.size(),QtCore.Qt.KeepAspectRatio))
 
-    @QtCore.pyqtSlot()
+    def set_logo(self):
+        self.framelabel.setPixmap(self.logo.scaled(self.framelabel.size(),QtCore.Qt.KeepAspectRatio))
+
+    def resizeEvent(self,event):
+        QtGui.QWidget.resizeEvent(self, event)
+        if self.client == False:
+            self.framelabel.setPixmap(self.logo.scaled(self.framelabel.size(),QtCore.Qt.KeepAspectRatio))
+
     def start_client(self):
-       
         if self.client is False:
             self.connectButton.setText("Disconnect")
             self.client = True
         else:
             self.connectButton.setText("Connect")
             self.client = False
+            self.set_logo()
 
     def update_frame(self, frame):
-        self.displayImage(frame)
+        if self.client == True:
+            self.displayImage(frame)
+        else:
+            self.set_logo()
+
 
     def displayImage(self, img):
         p = QtGui.QPixmap()

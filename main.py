@@ -10,6 +10,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         super(MainWindow,self).__init__()
         self.setupUi(self)
         #self.setStyleSheet(open('style/mainWindow.css').read())
+        self.key_mem ={}
         logging.basicConfig(level=logging.DEBUG)
         self.setWindowIcon(QtGui.QIcon('img/KNR_logo.png'))
         self.threadpool = QtCore.QThreadPool()
@@ -18,11 +19,16 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.streamClientIsRunning = False
         self.odroidClientIsRunning = False
         self.odroidClientConnected = False
-        self.controlSettings.threadpool = self.threadpool
-        self.changeWidgets()
+        self.initWidgets()
         self.connectButtons()
-    
-    
+        for i in self.findChildren(QtWidgets.QWidget):
+            i.setFocusPolicy(QtCore.Qt.ClickFocus)
+    def initWidgets(self):
+        self.pidCamera.connectButton.hide()
+        self.pidCamera.clientData.hide()
+        self.controlCamera.connectButton.hide()
+        self.controlCamera.clientData.hide()
+
     def updateWidgets(self):
         self.odroidClient.signals.armed.connect(self.controlSettings.armed)
         self.odroidClient.signals.disarmed.connect(self.controlSettings.disarmed)
@@ -48,12 +54,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.pidSetup.send_pid.disconnect()
         self.boatData.sendData.disconnect()
 
-    #changing few settings on camera clones
-    def changeWidgets(self):
-        self.pidCamera.connectButton.hide()
-        self.pidCamera.clientData.hide()
-        self.controlCamera.connectButton.hide()
-        self.controlCamera.clientData.hide()
+
 
     #stuff that will happen after succesful connection    
     def whenConnected(self):
@@ -101,7 +102,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.odroidClientIsRunning = False
 
     #establishing connection with jetson/simulation
-    #since this is other client 
+
     def manageStreamConnection(self):
             if self.streamClientIsRunning:
                 self.stopStreamConnection()
@@ -114,10 +115,17 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.updateStream()
         self.threadpool.start(self.streamClient)
         self.tabs.currentChanged.connect(self.updateStream)
+        self.pidCamera.client = True
+        self.controlCamera.client = True
         self.streamClientIsRunning = True
 
     def stopStreamConnection(self):
+        self.pidCamera.client = False
+        self.controlCamera.client = False
         self.streamClient.active = False
+        self.controlCamera.set_logo()
+        self.pidCamera.set_logo()
+ 
         self.streamClientIsRunning = False
     
     def updateStream(self, index=None):
@@ -135,6 +143,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def disconnectStream(self):
         self.streamClient.signals.newFrame.disconnect()
 
+
+        
 def main():
     app=QtWidgets.QApplication(sys.argv)
     window = MainWindow()

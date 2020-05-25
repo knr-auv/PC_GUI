@@ -1,14 +1,13 @@
 from PyQt5 import QtCore
 import inputs, json, time, math, logging, threading
 
-class padSignals(QtCore.QObject):
-    getData_callback = QtCore.pyqtSignal(object)
 
 class PadSteering(QtCore.QRunnable):
     def __init__(self, config = None):
         #TODO selecting pad...
         super(PadSteering, self).__init__()
-        self.signals = padSignals()
+        self.getData_callback = None
+        self.mode = "pad"
         with open("tools/pad.json",'r') as fd:
             self.input = json.load(fd)
         self.active = True
@@ -63,7 +62,7 @@ class PadSteering(QtCore.QRunnable):
         with self.lock:
             self.scale()    #scale needs to be before expo!!!
             self.calculate_expo()
-            self.signals.getData_callback.emit([self.output["roll"],self.output["pitch"],int(self.output["yaw"]),int(self.output["vertical"]),int(self.output["throttle"])])
+            self.getData_callback.emit([self.output["roll"],self.output["pitch"],int(self.output["yaw"]),int(self.output["vertical"]),int(self.output["throttle"])])
 
     def run(self):
 

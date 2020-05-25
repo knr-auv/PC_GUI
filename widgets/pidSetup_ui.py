@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'pidSetup.ui'
+# Form implementation generated from reading ui file 'UiFiles/pidSetup.ui'
 #
 # Created by: PyQt5 UI code generator 5.13.2
 #
@@ -191,3 +191,13 @@ class Ui_pidSetup(object):
         self.yaw_restore_btn.setText(_translate("pidSetup", "RESTORE"))
         self.all_set_btn.setText(_translate("pidSetup", "SET ALL"))
         self.all_restore_btn.setText(_translate("pidSetup", "RESTORE ALL"))
+
+
+if __name__ == "__main__":
+    import sys
+    app = QtWidgets.QApplication(sys.argv)
+    pidSetup = QtWidgets.QWidget()
+    ui = Ui_pidSetup()
+    ui.setupUi(pidSetup)
+    pidSetup.show()
+    sys.exit(app.exec_())
