@@ -1,0 +1,17 @@
+{
+ "throttle_rate": 50,
+ "throttle_stop": 0.7,
+ "vertical_rate": 50,
+ "vertical_stop": 0.7,
+ "yaw_rate": 50,
+ "yaw_stop": 0.0,
+ "roll_stop": 0,
+ "pitch_stop": 0,
+ "throttle_limit": 500,
+ "yaw_limit": 500,
+ "vertical_limit": 500,
+ "roll_rate": 5,
+ "roll_limit": 45,
+ "pitch_rate": 5,
+ "pitch_limit": 45
+}

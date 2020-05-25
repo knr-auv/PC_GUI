@@ -1,0 +1,12 @@
+{
+ "forward": 87,
+ "backward": 83,
+ "roll_left": 81,
+ "roll_right": 69,
+ "pitch_forward": 82,
+ "pitch_backward": 70,
+ "yaw_left": 65,
+ "yaw_right": 68,
+ "emerge": 16777235,
+ "submerge": 16777234
+}

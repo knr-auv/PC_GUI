@@ -4,6 +4,7 @@ from pyqtgraph import PlotWidget, plot
 import pyqtgraph as pg
 import numpy as np
 import math, threading
+import json
 from tools.Control.pad import *
 from tools.Control.keyboard import *
 
@@ -71,7 +72,7 @@ class controlSettings(QtWidgets.QWidget,Ui_controlSettings):
 
     #stuff todo after receiving disarm acknowledge or timeout
     def disarmed(self):
-        self.b_arm.setEnabled(True)
+        #self.b_arm.setEnabled(True)
         self.b_arm.disconnect()
         self.b_arm.clicked.connect(self.arm)
         self.b_arm.setText("Arm")
@@ -123,10 +124,11 @@ class controlSettings(QtWidgets.QWidget,Ui_controlSettings):
     getData_callback = QtCore.pyqtSignal(object)
     def startCtr(self):
         self.s_control.setEnabled(False)
-        self.controlStarted = True
+        
         if self.s_control.currentText() == "Keyboard":
             self.control = Keyboard()
             self.keyboard_widget.disableButtons()
+            self.controlStarted = True
             self.control.setKeyAssignment(self.keyboard_widget.key_assignment)
             self.control.setConfig(self.keyboard_widget.getConfig())
             self.control.getData_callback = self.getData_callback 
@@ -156,6 +158,7 @@ class controlSettings(QtWidgets.QWidget,Ui_controlSettings):
             return
         self.s_control.setEnabled(True)
         if self.control.mode =="keyboard":
+            self.keyboard_widget.saveConfig()
             self.keyPressEvent = self.memKP
             self.keyReleaseEvent = self.memKR
             self.releaseKeyboard()
@@ -181,6 +184,7 @@ class keyboard_widget(QtWidgets.QWidget):
        QtWidgets.QWidget.__init__(self,parent)
 
        #self.setStyleSheet("background-color: green;")
+       
        self.key_assignment = {"forward":QtCore.Qt.Key_W,
                         "backward":QtCore.Qt.Key_S,
                         "roll_left":QtCore.Qt.Key_Q,
@@ -248,6 +252,16 @@ class keyboard_widget(QtWidgets.QWidget):
        self.b_pitch_f.setText("R")
        self.b_pitch_b.setText("F")
 
+       self.b_forward.setAccessibleName("forward")
+       self.b_backward.setAccessibleName("backward")
+       self.b_yaw_l.setAccessibleName("yaw_left")
+       self.b_yaw_r.setAccessibleName("yaw_right")
+       self.b_emerge.setAccessibleName("emerge")
+       self.b_submerge.setAccessibleName("submerge")
+       self.b_roll_l.setAccessibleName("roll_left")
+       self.b_roll_r.setAccessibleName("roll_right")
+       self.b_pitch_f.setAccessibleName("pitch_forward")
+       self.b_pitch_b.setAccessibleName("pitch_backward")
 
        rate_box = QtWidgets.QGroupBox(self)
        limit_box = QtWidgets.QGroupBox(self)
@@ -394,6 +408,8 @@ class keyboard_widget(QtWidgets.QWidget):
        for i in self.findChildren(QtWidgets.QSpinBox):
             i.valueChanged.connect(lambda: self.configChanged.emit(self.getConfig()))
        mainLayout.setContentsMargins(0,0,0,0)
+       self.loadKey()
+       self.loadConfig()
 
     def enableButtons(self):
         for i in self.findChildren(QtWidgets.QPushButton):
@@ -403,10 +419,28 @@ class keyboard_widget(QtWidgets.QWidget):
         for i in self.findChildren(QtWidgets.QPushButton):
             i.setEnabled(False)
 
-    def dialog(self,label, button):
-        self.d = QtWidgets.QWidget(self)
-        
-        a2k = {
+
+    def saveKey(self):
+        with open('tools/Control/key_assignment.json','w')as fd:
+            json.dump(self.key_assignment, fd, indent=1)
+
+    def loadKey(self):
+        cfg ={}
+        try:
+            with open("tools/Control/key_assignment.json",'r') as fd:
+                cfg = json.load(fd)
+            
+        except:
+            return
+        self.key_assignment = cfg
+        for i in self.findChildren(QtWidgets.QPushButton):
+            try:
+                i.setText(chr(cfg[i.accessibleName()]))
+            except ValueError:
+                i.setText(self.a2k[cfg[i.accessibleName()]])
+
+
+    a2k = {
             QtCore.Qt.Key_Up:"Up",
             QtCore.Qt.Key_Down:"Down",
             QtCore.Qt.Key_Right:"Right",
@@ -421,6 +455,8 @@ class keyboard_widget(QtWidgets.QWidget):
             QtCore.Qt.Key_Pause:"Pause",
             QtCore.Qt.Key_Print:"Print"
             }
+    def dialog(self,label, button):
+        self.d = QtWidgets.QWidget(self)
 
 
         def keyPE(event):
@@ -433,12 +469,13 @@ class keyboard_widget(QtWidgets.QWidget):
             tb = event.text().capitalize()
             if tb == "" or tb == " " or tb == chr(13) or tb == chr(9):
                 try:
-                    tb = a2k[event.key()]
+                    tb = self.a2k[event.key()]
                 except KeyError:
                     tb = str(event.key())   
             button.setText(tb)
+            self.saveKey()
             self.d.close()
-        
+
         l = QtWidgets.QVBoxLayout()
         l1 = QtWidgets.QLabel("Assign key to '"+label.text()+"'")
         l2 = QtWidgets.QLabel("Press 'Esc' to cancel")
@@ -454,7 +491,7 @@ class keyboard_widget(QtWidgets.QWidget):
         self.d.show()
 
     def getConfig(self):
-        control_spec = {"throttle_rate":int(self.s_throttle_rate.text()),
+        control_spec = {     "throttle_rate":int(self.s_throttle_rate.text()),
                              "throttle_stop":0.7,
                              "vertical_rate":int(self.s_vertical_rate.text()),
                              "vertical_stop":0.7,
@@ -471,6 +508,28 @@ class keyboard_widget(QtWidgets.QWidget):
                              "pitch_limit":int(self.s_pitch_limit.text().replace('°',''))
                              }
         return control_spec
+
+    def saveConfig(self):
+        with open('tools/Control/keyboard_config.json','w')as fd:
+            json.dump(self.getConfig(), fd, indent=1)
+    
+    def loadConfig(self):
+        cfg ={}
+        try:
+            with open("tools/Control/keyboard_config.json",'r') as fd:
+                cfg = json.load(fd)
+        except:
+            return
+        self.s_throttle_rate.setValue(cfg["throttle_rate"])
+        self.s_vertical_rate.setValue(cfg["vertical_rate"])
+        self.s_yaw_rate.setValue(cfg["yaw_rate"])
+        self.s_roll_rate.setValue(cfg["roll_rate"])
+        self.s_pitch_rate.setValue(cfg["pitch_rate"])
+        self.s_throttle_limit.setValue(cfg["throttle_limit"])
+        self.s_vertical_limit.setValue(cfg["vertical_limit"])
+        self.s_yaw_limit.setValue(cfg["yaw_limit"])
+        self.s_roll_limit.setValue(cfg["roll_limit"])
+        self.s_pitch_limit.setValue(cfg["pitch_limit"])
 
 
 class expo_plot(pg.PlotWidget):
