@@ -61,7 +61,7 @@
        <enum>QTabWidget::Rounded</enum>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="test">
        <property name="sizePolicy">
@@ -271,7 +271,7 @@
          <widget class="controlSettings" name="controlSettings" native="true"/>
         </item>
         <item>
-         <widget class="cameraContainer" name="controlCamera" native="true">
+         <widget class="osdWidget" name="controlCamera" native="true">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
             <horstretch>0</horstretch>
@@ -339,6 +339,12 @@
    <class>controlSettings</class>
    <extends>QWidget</extends>
    <header>widgets/controlSettings.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>osdWidget</class>
+   <extends>QWidget</extends>
+   <header>widgets/osdWidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

@@ -26,8 +26,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def initWidgets(self):
         self.pidCamera.connectButton.hide()
         self.pidCamera.clientData.hide()
-        self.controlCamera.connectButton.hide()
-        self.controlCamera.clientData.hide()
+       # self.controlCamera.connectButton.hide()
+       # self.controlCamera.clientData.hide()
 
     def updateWidgets(self):
         self.odroidClient.signals.armed.connect(self.controlSettings.armed)
@@ -111,19 +111,21 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def startStreamConnection(self):
         ip, port = self.cameraContainer.clientData.displayText().split(":")
+        print(ip,port)
+        #self.streamClient = SimulationClient(ip=str('localhost'), port=int(8485))
         self.streamClient = SimulationClient(ip=str(ip), port=int(port))
         self.updateStream()
         self.threadpool.start(self.streamClient)
         self.tabs.currentChanged.connect(self.updateStream)
         self.pidCamera.client = True
-        self.controlCamera.client = True
-        self.streamClientIsRunning = True
+        #self.controlCamera.client = True
+        #self.streamClientIsRunning = True
 
     def stopStreamConnection(self):
         self.pidCamera.client = False
-        self.controlCamera.client = False
+        #self.controlCamera.client = False
         self.streamClient.active = False
-        self.controlCamera.set_logo()
+        #self.controlCamera.set_logo()
         self.pidCamera.set_logo()
  
         self.streamClientIsRunning = False
@@ -138,7 +140,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         elif index ==1:
             self.streamClient.signals.newFrame.connect(self.pidCamera.update_frame)
         elif index ==2:
-            self.streamClient.signals.newFrame.connect(self.controlCamera.update_frame)
+            self.streamClient.signals.newFrame.connect(self.controlCamera.update)
 
     def disconnectStream(self):
         self.streamClient.signals.newFrame.disconnect()

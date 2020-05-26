@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Form</class>
- <widget class="QWidget" name="Form">
+ <class>cameraContainer</class>
+ <widget class="QWidget" name="cameraContainer">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -15,24 +15,14 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QLabel" name="framelabel">
-     <property name="minimumSize">
-      <size>
-       <width>640</width>
-       <height>480</height>
-      </size>
-     </property>
-     <property name="text">
-      <string>framelabel</string>
-     </property>
-    </widget>
+    <widget class="QWidget" name="frameWidget" native="true"/>
    </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
       <widget class="QLineEdit" name="clientData">
        <property name="text">
-        <string>127.0.0.1:8485</string>
+        <string>127.0.0.1:44209</string>
        </property>
       </widget>
      </item>
