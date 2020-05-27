@@ -21,24 +21,27 @@ class cameraContainer(QtWidgets.QWidget, Ui_cameraContainer):
         else:
             self.connectButton.setText("Connect")
             self.client = False
-            self.set_logo()
+            self.setLogo()
+
 
     def update_frame(self, img):
         if self.client == True:
             self.img.loadFromData(img)
         else:
-            self.self.img = self.logo
+            self.img = self.logo
+        self.repaint()
+
+    def setLogo(self):
+        self.img = self.logo
         self.repaint()
 
     def paintEvent(self,e):
         qp = QtGui.QPainter()
         
         qp.begin(self)
-        qp.setRenderHint(QtGui.QPainter.Antialiasing, True)
-        qp.setRenderHint(QtGui.QPainter.SmoothPixmapTransform, True)
+        #qp.setRenderHint(QtGui.QPainter.Antialiasing, True)
+        #qp.setRenderHint(QtGui.QPainter.SmoothPixmapTransform, True)
         self.img  = self.img.scaled(self.size(),QtCore.Qt.KeepAspectRatio)
-        #qp.scale(self.width(),self.height())
-        #print(self.rect())
         qp.drawPixmap((self.width()-self.img.width())/2,(self.height()-self.img.height())/2, self.img.width(),self.img.height(), self.img)
         qp.end()
 

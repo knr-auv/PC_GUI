@@ -117,16 +117,21 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.updateStream()
         self.threadpool.start(self.streamClient)
         self.tabs.currentChanged.connect(self.updateStream)
+
+        self.cameraContainer.client = True
         self.pidCamera.client = True
-        #self.controlCamera.client = True
-        #self.streamClientIsRunning = True
+        self.controlCamera.client = True
+        self.streamClientIsRunning = True
 
     def stopStreamConnection(self):
+        self.cameraContainer.client = False
         self.pidCamera.client = False
-        #self.controlCamera.client = False
+        self.controlCamera.client = False
         self.streamClient.active = False
-        #self.controlCamera.set_logo()
-        self.pidCamera.set_logo()
+
+        self.cameraContainer.setLogo()
+        self.controlCamera.setLogo()
+        self.pidCamera.setLogo()
  
         self.streamClientIsRunning = False
     

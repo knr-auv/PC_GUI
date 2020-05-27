@@ -1,6 +1,7 @@
-
-class Keyboard:
-    def __init__(self):
+from PyQt5 import QtWidgets, QtCore, QtGui
+class Keyboard(QtWidgets.QWidget):
+    def __init__(self, parent = None):
+        QtWidgets.QWidget.__init__(self,parent)
         self.getData_callback = None
         self.mode = "keyboard"
         self.key_mem={}
@@ -45,12 +46,15 @@ class Keyboard:
     def keyPressEvent(self, event):
         if not event.isAutoRepeat():
             self.key_mem[event.key()] = True
-            print("abc")
+
     def keyReleaseEvent(self, event):
         if not event.isAutoRepeat():
             self.key_mem[event.key()] = False
-            print("abwc")
 
+    def start_control(self):
+        self.grabKeyboard()
+    def stop_control(self):
+        self.releaseKeyboard()
     def get_data(self):
         #print(self.key_mem)
         #horizontal forward/backward

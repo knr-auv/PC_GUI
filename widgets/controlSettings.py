@@ -133,12 +133,13 @@ class controlSettings(QtWidgets.QWidget,Ui_controlSettings):
             self.control.setConfig(self.keyboard_widget.getConfig())
             self.control.getData_callback = self.getData_callback 
             self.keyboard_widget.configChanged.connect(self.control.setConfig)
-            self.memKP = self.keyPressEvent
-            self.memKR = self.keyReleaseEvent
+            #self.memKP = self.keyPressEvent
+            #self.memKR = self.keyReleaseEvent
             #maybe use Qshortcut insteaqd of disabling keyboard...
-            self.keyPressEvent = self.control.keyPressEvent
-            self.keyReleaseEvent = self.control.keyReleaseEvent
-            self.grabKeyboard()
+            #self.keyPressEvent = self.control.keyPressEvent
+            #self.keyReleaseEvent = self.control.keyReleaseEvent
+            #self.grabKeyboard()
+            self.control.start_control()
 
 
         if self.s_control.currentText == "Pad":
@@ -160,9 +161,10 @@ class controlSettings(QtWidgets.QWidget,Ui_controlSettings):
         self.s_control.setEnabled(True)
         if self.control.mode =="keyboard":
             self.keyboard_widget.saveConfig()
-            self.keyPressEvent = self.memKP
-            self.keyReleaseEvent = self.memKR
-            self.releaseKeyboard()
+            #self.keyPressEvent = self.memKP
+            #self.keyReleaseEvent = self.memKR
+            #self.releaseKeyboard()
+            self.control.stop_control()
             self.keyboard_widget.enableButtons()
             self.keyboard_widget.configChanged.disconnect()
             pass
@@ -422,13 +424,13 @@ class keyboard_widget(QtWidgets.QWidget):
 
 
     def saveKey(self):
-        with open('tools/Control/key_assignment.json','w')as fd:
+        with open('config/key_assignment.json','w')as fd:
             json.dump(self.key_assignment, fd, indent=1)
 
     def loadKey(self):
         cfg ={}
         try:
-            with open("tools/Control/key_assignment.json",'r') as fd:
+            with open("config/key_assignment.json",'r') as fd:
                 cfg = json.load(fd)
         except:
             return
@@ -496,7 +498,7 @@ class keyboard_widget(QtWidgets.QWidget):
                 button.setText(tb)
                 self.close()
 
-        d = dialog(self,button, label)
+        d = dialog(self, button, label)
         d.setAssignment = setKeyAss
         d.saveKey = self.saveKey
 
@@ -523,13 +525,13 @@ class keyboard_widget(QtWidgets.QWidget):
         return control_spec
 
     def saveConfig(self):
-        with open('tools/Control/keyboard_config.json','w')as fd:
+        with open('config/keyboard_config.json','w')as fd:
             json.dump(self.getConfig(), fd, indent=1)
     
     def loadConfig(self):
         cfg ={}
         try:
-            with open("tools/Control/keyboard_config.json",'r') as fd:
+            with open("confgig/keyboard_config.json",'r') as fd:
                 cfg = json.load(fd)
         except:
             return

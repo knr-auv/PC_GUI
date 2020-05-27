@@ -70,8 +70,8 @@ class SimulationClient(QtCore.QRunnable):
         self.socket.connect((self.ip, self.port))
         while self.active:
             self.signals.newFrame.emit(self.receive_frame())
-            #around 60 fps
-            time.sleep(0.016)
+            #around 40 fps
+            time.sleep(0.025)
             
     def stop(self):
         self.socket.close()
