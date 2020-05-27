@@ -10,15 +10,9 @@ class cameraContainer(QtWidgets.QWidget, Ui_cameraContainer):
         self.connectButton.clicked.connect(self.start_client)
         self.client = False
         self.logo = QtGui.QPixmap("img/LOGO_OKON1.png")
-        self.framelabel.setPixmap(self.logo.scaled(self.framelabel.size(),QtCore.Qt.KeepAspectRatio))
+        self.img = self.logo
+        self.repaint()
 
-    def set_logo(self):
-        self.framelabel.setPixmap(self.logo.scaled(self.framelabel.size(),QtCore.Qt.KeepAspectRatio))
-
-    def resizeEvent(self,event):
-        QtGui.QWidget.resizeEvent(self, event)
-        if self.client == False:
-            self.framelabel.setPixmap(self.logo.scaled(self.framelabel.size(),QtCore.Qt.KeepAspectRatio))
 
     def start_client(self):
         if self.client is False:
@@ -27,21 +21,29 @@ class cameraContainer(QtWidgets.QWidget, Ui_cameraContainer):
         else:
             self.connectButton.setText("Connect")
             self.client = False
-            self.set_logo()
+            self.setLogo()
 
-    def update_frame(self, frame):
+
+    def update_frame(self, img):
         if self.client == True:
-            self.displayImage(frame)
+            self.img.loadFromData(img)
         else:
-            self.set_logo()
+            self.img = self.logo
+        self.repaint()
 
+    def setLogo(self):
+        self.img = self.logo
+        self.repaint()
 
-    def displayImage(self, img):
-        p = QtGui.QPixmap()
-        p.loadFromData(img)
-        #resizing to fit label and keep aspect ratio 1200/720
-        p = p.scaled(self.framelabel.size(),QtCore.Qt.KeepAspectRatio)
-        self.framelabel.setPixmap(p)
+    def paintEvent(self,e):
+        qp = QtGui.QPainter()
+        
+        qp.begin(self)
+        #qp.setRenderHint(QtGui.QPainter.Antialiasing, True)
+        #qp.setRenderHint(QtGui.QPainter.SmoothPixmapTransform, True)
+        self.img  = self.img.scaled(self.size(),QtCore.Qt.KeepAspectRatio)
+        qp.drawPixmap((self.width()-self.img.width())/2,(self.height()-self.img.height())/2, self.img.width(),self.img.height(), self.img)
+        qp.end()
 
 if __name__=='__main__':
     import sys

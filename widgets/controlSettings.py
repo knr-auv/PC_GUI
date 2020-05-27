@@ -133,12 +133,14 @@ class controlSettings(QtWidgets.QWidget,Ui_controlSettings):
             self.control.setConfig(self.keyboard_widget.getConfig())
             self.control.getData_callback = self.getData_callback 
             self.keyboard_widget.configChanged.connect(self.control.setConfig)
-            self.memKP = self.keyPressEvent
-            self.memKR = self.keyReleaseEvent
+            #self.memKP = self.keyPressEvent
+            #self.memKR = self.keyReleaseEvent
             #maybe use Qshortcut insteaqd of disabling keyboard...
-            self.grabKeyboard()
-            self.keyPressEvent = self.control.keyPressEvent
-            self.keyReleaseEvent = self.control.keyReleaseEvent
+            #self.keyPressEvent = self.control.keyPressEvent
+            #self.keyReleaseEvent = self.control.keyReleaseEvent
+            #self.grabKeyboard()
+            self.control.start_control()
+
 
         if self.s_control.currentText == "Pad":
             pass
@@ -159,9 +161,10 @@ class controlSettings(QtWidgets.QWidget,Ui_controlSettings):
         self.s_control.setEnabled(True)
         if self.control.mode =="keyboard":
             self.keyboard_widget.saveConfig()
-            self.keyPressEvent = self.memKP
-            self.keyReleaseEvent = self.memKR
-            self.releaseKeyboard()
+            #self.keyPressEvent = self.memKP
+            #self.keyReleaseEvent = self.memKR
+            #self.releaseKeyboard()
+            self.control.stop_control()
             self.keyboard_widget.enableButtons()
             self.keyboard_widget.configChanged.disconnect()
             pass
@@ -421,15 +424,14 @@ class keyboard_widget(QtWidgets.QWidget):
 
 
     def saveKey(self):
-        with open('tools/Control/key_assignment.json','w')as fd:
+        with open('config/key_assignment.json','w')as fd:
             json.dump(self.key_assignment, fd, indent=1)
 
     def loadKey(self):
         cfg ={}
         try:
-            with open("tools/Control/key_assignment.json",'r') as fd:
+            with open("config/key_assignment.json",'r') as fd:
                 cfg = json.load(fd)
-            
         except:
             return
         self.key_assignment = cfg
@@ -456,39 +458,52 @@ class keyboard_widget(QtWidgets.QWidget):
             QtCore.Qt.Key_Print:"Print"
             }
     def dialog(self,label, button):
-        self.d = QtWidgets.QWidget(self)
+        
+
+        def setKeyAss(name, value):
+            self.key_assignment[name]=value
+
+        class dialog(QtWidgets.QWidget):
+            def __init__(self,parent=None, button = None, label = None):
+                QtWidgets.QWidget.__init__(self,parent)
+                self.saveKey = None
+                self.setAssignment = None
+                l = QtWidgets.QVBoxLayout()
+                l1 = QtWidgets.QLabel("Assign key to '"+label.text()+"'")
+                l2 = QtWidgets.QLabel("Press 'Esc' to cancel")
+                l1.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
+                l2.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
+                l.addWidget(l1)
+                l.addWidget(l2)
+                self.setMinimumSize(QtCore.QSize(200, 200))
+                self.setWindowModality(QtCore.Qt.ApplicationModal)
+                self.setWindowFlags(QtCore.Qt.FramelessWindowHint|QtCore.Qt.Dialog)
+                self.setLayout(l)
+                self.show()
+
+            def keyPressEvent(self,event):
+                if event.isAutoRepeat():
+                    return
+                if event.key()==QtCore.Qt.Key_Escape:
+                    self.close()
+                    return
+                self.setAssignment(label.accessibleName(),event.key())
+                tb = event.text().capitalize()
+                if tb == "" or tb == " " or tb == chr(13) or tb == chr(9):
+                    try:
+                        tb = self.a2k[event.key()]
+                    except KeyError:
+                        tb = str(event.key())   
+                self.saveKey()
+                button.setText(tb)
+                self.close()
+
+        d = dialog(self, button, label)
+        d.setAssignment = setKeyAss
+        d.saveKey = self.saveKey
 
 
-        def keyPE(event):
-            if event.isAutoRepeat():
-                return
-            if event.key()==QtCore.Qt.Key_Escape:
-                self.d.close()
-                return
-            self.key_assignment[label.accessibleName()]=event.key()
-            tb = event.text().capitalize()
-            if tb == "" or tb == " " or tb == chr(13) or tb == chr(9):
-                try:
-                    tb = self.a2k[event.key()]
-                except KeyError:
-                    tb = str(event.key())   
-            button.setText(tb)
-            self.saveKey()
-            self.d.close()
 
-        l = QtWidgets.QVBoxLayout()
-        l1 = QtWidgets.QLabel("Assign key to '"+label.text()+"'")
-        l2 = QtWidgets.QLabel("Press 'Esc' to cancel")
-        l1.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
-        l2.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
-        self.d.keyPressEvent = keyPE
-        l.addWidget(l1)
-        l.addWidget(l2)
-        self.d.setMinimumSize(QtCore.QSize(200, 200))
-        self.d.setWindowModality(QtCore.Qt.ApplicationModal)
-        self.d.setWindowFlags(QtCore.Qt.FramelessWindowHint|QtCore.Qt.Dialog)
-        self.d.setLayout(l)
-        self.d.show()
 
     def getConfig(self):
         control_spec = {     "throttle_rate":int(self.s_throttle_rate.text()),
@@ -510,13 +525,13 @@ class keyboard_widget(QtWidgets.QWidget):
         return control_spec
 
     def saveConfig(self):
-        with open('tools/Control/keyboard_config.json','w')as fd:
+        with open('config/keyboard_config.json','w')as fd:
             json.dump(self.getConfig(), fd, indent=1)
     
     def loadConfig(self):
         cfg ={}
         try:
-            with open("tools/Control/keyboard_config.json",'r') as fd:
+            with open("confgig/keyboard_config.json",'r') as fd:
                 cfg = json.load(fd)
         except:
             return
