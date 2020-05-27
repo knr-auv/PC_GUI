@@ -133,14 +133,7 @@ class controlSettings(QtWidgets.QWidget,Ui_controlSettings):
             self.control.setConfig(self.keyboard_widget.getConfig())
             self.control.getData_callback = self.getData_callback 
             self.keyboard_widget.configChanged.connect(self.control.setConfig)
-            #self.memKP = self.keyPressEvent
-            #self.memKR = self.keyReleaseEvent
-            #maybe use Qshortcut insteaqd of disabling keyboard...
-            #self.keyPressEvent = self.control.keyPressEvent
-            #self.keyReleaseEvent = self.control.keyReleaseEvent
-            #self.grabKeyboard()
             self.control.start_control()
-
 
         if self.s_control.currentText == "Pad":
             pass
@@ -166,8 +159,11 @@ class controlSettings(QtWidgets.QWidget,Ui_controlSettings):
             #self.releaseKeyboard()
             self.control.stop_control()
             self.keyboard_widget.enableButtons()
-            self.keyboard_widget.configChanged.disconnect()
-            pass
+            try:
+                self.keyboard_widget.configChanged.disconnect()
+            except TypeError:
+                pass
+
         elif self.control.mode == "pad":
             pass
         elif self.control.mode =="autonomy":
@@ -176,7 +172,10 @@ class controlSettings(QtWidgets.QWidget,Ui_controlSettings):
 
         self.b_start.show()
         self.controlTimer.stop()
-        self.controlTimer.timeout.disconnect()
+        try:
+            self.controlTimer.timeout.disconnect()
+        except TypeError:
+            pass
         self.b_start.show()
         self.b_arm.setEnabled(False)
 
