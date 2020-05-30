@@ -13,7 +13,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(1098, 843)
+        MainWindow.resize(956, 818)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -35,11 +35,12 @@ class Ui_MainWindow(object):
         self.connectionBar.setObjectName("connectionBar")
         self.verticalLayout.addWidget(self.connectionBar)
         self.tabs = QtWidgets.QTabWidget(self.centralwidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.tabs.sizePolicy().hasHeightForWidth())
         self.tabs.setSizePolicy(sizePolicy)
+        self.tabs.setMinimumSize(QtCore.QSize(0, 750))
         self.tabs.setAutoFillBackground(False)
         self.tabs.setStyleSheet("")
         self.tabs.setTabShape(QtWidgets.QTabWidget.Rounded)
@@ -50,11 +51,12 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.test.sizePolicy().hasHeightForWidth())
         self.test.setSizePolicy(sizePolicy)
+        self.test.setMinimumSize(QtCore.QSize(0, 0))
         self.test.setObjectName("test")
         self.horizontalLayout = QtWidgets.QHBoxLayout(self.test)
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.dataBox = QtWidgets.QFrame(self.test)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.MinimumExpanding)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.Minimum)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.dataBox.sizePolicy().hasHeightForWidth())
@@ -68,7 +70,7 @@ class Ui_MainWindow(object):
         self.verticalLayout_2.setObjectName("verticalLayout_2")
         self.engineData = engineData(self.dataBox)
         self.engineData.setEnabled(True)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.Minimum)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.engineData.sizePolicy().hasHeightForWidth())
@@ -81,6 +83,8 @@ class Ui_MainWindow(object):
         self.horizontalLayout_3.setContentsMargins(0, -1, 0, -1)
         self.horizontalLayout_3.setObjectName("horizontalLayout_3")
         self.verticalLayout_2.addWidget(self.engineData)
+        spacerItem = QtWidgets.QSpacerItem(0, 0, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        self.verticalLayout_2.addItem(spacerItem)
         self.boatData = boatData(self.dataBox)
         self.boatData.setEnabled(True)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.Fixed)
@@ -161,9 +165,17 @@ class Ui_MainWindow(object):
         self.control.setObjectName("control")
         self.horizontalLayout_8 = QtWidgets.QHBoxLayout(self.control)
         self.horizontalLayout_8.setObjectName("horizontalLayout_8")
+        self.verticalLayout_6 = QtWidgets.QVBoxLayout()
+        self.verticalLayout_6.setObjectName("verticalLayout_6")
         self.controlSettings = controlSettings(self.control)
         self.controlSettings.setObjectName("controlSettings")
-        self.horizontalLayout_8.addWidget(self.controlSettings)
+        self.verticalLayout_6.addWidget(self.controlSettings)
+        self.osdSettings = osdSettings(self.control)
+        self.osdSettings.setAutoFillBackground(False)
+        self.osdSettings.setStyleSheet("")
+        self.osdSettings.setObjectName("osdSettings")
+        self.verticalLayout_6.addWidget(self.osdSettings)
+        self.horizontalLayout_8.addLayout(self.verticalLayout_6)
         self.controlCamera = osdWidget(self.control)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Ignored, QtWidgets.QSizePolicy.Ignored)
         sizePolicy.setHorizontalStretch(0)
@@ -176,7 +188,7 @@ class Ui_MainWindow(object):
         self.verticalLayout.addWidget(self.tabs)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 1098, 21))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 956, 21))
         self.menubar.setObjectName("menubar")
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
@@ -184,7 +196,7 @@ class Ui_MainWindow(object):
         MainWindow.setStatusBar(self.statusbar)
 
         self.retranslateUi(MainWindow)
-        self.tabs.setCurrentIndex(2)
+        self.tabs.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
@@ -199,6 +211,7 @@ from widgets.cameraContainer import cameraContainer
 from widgets.connectionBar import connectionBar
 from widgets.controlSettings import controlSettings
 from widgets.engineData import engineData
+from widgets.osdSettings import osdSettings
 from widgets.osdWidget import osdWidget
 from widgets.pidSetup import pidSetup
 

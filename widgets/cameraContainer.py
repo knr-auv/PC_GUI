@@ -9,7 +9,7 @@ class cameraContainer(QtWidgets.QWidget, Ui_cameraContainer):
         self.setupUi(self)
         self.connectButton.clicked.connect(self.start_client)
         self.client = False
-        self.logo = QtGui.QPixmap("img/LOGO_OKON1.png")
+        self.logo = QtGui.QImage("img/LOGO_OKON1.png")
         self.img = self.logo
         self.repaint()
 
@@ -41,8 +41,8 @@ class cameraContainer(QtWidgets.QWidget, Ui_cameraContainer):
         qp.begin(self)
         #qp.setRenderHint(QtGui.QPainter.Antialiasing, True)
         #qp.setRenderHint(QtGui.QPainter.SmoothPixmapTransform, True)
-        self.img  = self.img.scaled(self.size(),QtCore.Qt.KeepAspectRatio)
-        qp.drawPixmap((self.width()-self.img.width())/2,(self.height()-self.img.height())/2, self.img.width(),self.img.height(), self.img)
+        img  = self.img.scaled(self.size(),QtCore.Qt.KeepAspectRatio)
+        qp.drawImage(QtCore.QRectF((self.width()-img.width())/2,(self.height()-img.height())/2, img.width(),img.height()), img)
         qp.end()
 
 if __name__=='__main__':

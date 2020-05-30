@@ -10,6 +10,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         super(MainWindow,self).__init__()
         self.setupUi(self)
         #self.setStyleSheet(open('style/mainWindow.css').read())
+        qtRectangle = self.frameGeometry()
+        #centerPoint = QtWidgets.QDesktopWidget().availableGeometry().center()
+        #qtRectangle.moveCenter(centerPoint)
+        #print(qtRectangle)
+        self.move(0,0)
+        self.setGeometry(0,0,100,100)
         self.key_mem ={}
         logging.basicConfig(level=logging.DEBUG)
         self.setWindowIcon(QtGui.QIcon('img/KNR_logo.png'))
@@ -23,11 +29,14 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.connectButtons()
         for i in self.findChildren(QtWidgets.QWidget):
             i.setFocusPolicy(QtCore.Qt.ClickFocus)
+        self.escShortcut = QtWidgets.QShortcut(QtGui.QKeySequence('Esc'),self)
+        self.escShortcut.activated.connect(self.controlCamera.exitFullScreen)
+
     def initWidgets(self):
         self.pidCamera.connectButton.hide()
         self.pidCamera.clientData.hide()
-       # self.controlCamera.connectButton.hide()
-       # self.controlCamera.clientData.hide()
+        self.controlSettings.escapeClicked.connect(self.controlCamera.exitFullScreen)
+        self.osdSettings.setWidget(self.controlCamera)
 
     def updateWidgets(self):
         self.odroidClient.signals.armed.connect(self.controlSettings.armed)
@@ -36,6 +45,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.odroidClient.signals.receivedMotors.connect(self.engineData.update)
         self.odroidClient.signals.receivedBoatData.connect(self.boatData.update)
         self.odroidClient.signals.receivedIMUData.connect(self.IMUGraph.update)
+        self.odroidClient.signals.receivedIMUData.connect(self.controlCamera.storeData)
 
     def sendData(self):
         self.controlSettings.armSignal.connect(lambda arg: self.odroidClient.arm(arg))
@@ -146,7 +156,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.streamClient.signals.newFrame.connect(self.pidCamera.update_frame)
         elif index ==2:
             self.streamClient.signals.newFrame.connect(self.controlCamera.update)
-
     def disconnectStream(self):
         self.streamClient.signals.newFrame.disconnect()
 

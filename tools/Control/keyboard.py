@@ -1,5 +1,6 @@
 from PyQt5 import QtWidgets, QtCore, QtGui
 class Keyboard(QtWidgets.QWidget):
+    escapeClicked = QtCore.pyqtSignal()
     def __init__(self, parent = None):
         QtWidgets.QWidget.__init__(self,parent)
         self.getData_callback = None
@@ -45,8 +46,10 @@ class Keyboard(QtWidgets.QWidget):
 
     def keyPressEvent(self, event):
         if not event.isAutoRepeat():
+            if event.key()==QtCore.Qt.Key_Escape:
+                self.escapeClicked.emit()
             self.key_mem[event.key()] = True
-
+            
     def keyReleaseEvent(self, event):
         if not event.isAutoRepeat():
             self.key_mem[event.key()] = False

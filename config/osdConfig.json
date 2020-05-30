@@ -1,0 +1,11 @@
+{
+ "heading_x": 50,
+ "heading_y": 3,
+ "depth_x": 67,
+ "depth_y": 50,
+ "horizon_x": 50,
+ "horizon_y": 50,
+ "depth_active": true,
+ "heading_active": true,
+ "horizon_active": true
+}

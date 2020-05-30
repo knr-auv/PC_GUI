@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>osdSettings</class>
+ <widget class="QWidget" name="osdSettings">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>582</width>
+    <height>447</height>
+   </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>100</width>
+    <height>116</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <property name="statusTip">
+   <string>Stream is splitted in 100x100 grid</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QWidget" name="widget" native="true">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="palette">
+      <palette>
+       <active>
+        <colorrole role="Highlight">
+         <brush brushstyle="SolidPattern">
+          <color alpha="255">
+           <red>255</red>
+           <green>255</green>
+           <blue>255</blue>
+          </color>
+         </brush>
+        </colorrole>
+        <colorrole role="HighlightedText">
+         <brush brushstyle="SolidPattern">
+          <color alpha="255">
+           <red>0</red>
+           <green>0</green>
+           <blue>0</blue>
+          </color>
+         </brush>
+        </colorrole>
+       </active>
+       <inactive>
+        <colorrole role="Highlight">
+         <brush brushstyle="SolidPattern">
+          <color alpha="255">
+           <red>255</red>
+           <green>255</green>
+           <blue>255</blue>
+          </color>
+         </brush>
+        </colorrole>
+        <colorrole role="HighlightedText">
+         <brush brushstyle="SolidPattern">
+          <color alpha="255">
+           <red>0</red>
+           <green>0</green>
+           <blue>0</blue>
+          </color>
+         </brush>
+        </colorrole>
+       </inactive>
+       <disabled>
+        <colorrole role="Highlight">
+         <brush brushstyle="SolidPattern">
+          <color alpha="255">
+           <red>0</red>
+           <green>120</green>
+           <blue>215</blue>
+          </color>
+         </brush>
+        </colorrole>
+        <colorrole role="HighlightedText">
+         <brush brushstyle="SolidPattern">
+          <color alpha="255">
+           <red>0</red>
+           <green>0</green>
+           <blue>0</blue>
+          </color>
+         </brush>
+        </colorrole>
+       </disabled>
+      </palette>
+     </property>
+     <layout class="QGridLayout" name="gridLayout">
+      <item row="5" column="0">
+       <widget class="QLabel" name="label_3">
+        <property name="text">
+         <string>Heading</string>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="3">
+       <widget class="QRadioButton" name="depth_active">
+        <property name="text">
+         <string/>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+        <property name="autoExclusive">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="3">
+       <widget class="QRadioButton" name="heading_active">
+        <property name="text">
+         <string/>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+        <property name="autoExclusive">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="0">
+       <widget class="QLabel" name="label_2">
+        <property name="text">
+         <string>Depth</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="3">
+       <widget class="QRadioButton" name="horizon_active">
+        <property name="text">
+         <string/>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+        <property name="autoExclusive">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>Horizon</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="4">
+       <widget class="QSpinBox" name="heading_x">
+        <property name="value">
+         <number>50</number>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="5">
+       <widget class="QSpinBox" name="heading_y">
+        <property name="value">
+         <number>5</number>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="4">
+       <widget class="QSpinBox" name="depth_x">
+        <property name="value">
+         <number>60</number>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="5">
+       <widget class="QSpinBox" name="depth_y">
+        <property name="value">
+         <number>50</number>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="4">
+       <widget class="QSpinBox" name="horizon_x">
+        <property name="value">
+         <number>50</number>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="5">
+       <widget class="QSpinBox" name="horizon_y">
+        <property name="value">
+         <number>50</number>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="4">
+       <widget class="QLabel" name="label_4">
+        <property name="text">
+         <string>X</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="5">
+       <widget class="QLabel" name="label_5">
+        <property name="text">
+         <string>Y</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="b_setFS">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="text">
+      <string>Full Sreen</string>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

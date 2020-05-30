@@ -11,6 +11,7 @@ from tools.Control.keyboard import *
 class controlSettings(QtWidgets.QWidget,Ui_controlSettings):
     armSignal = QtCore.pyqtSignal(object)
     disarmSignal = QtCore.pyqtSignal()
+    escapeClicked = QtCore.pyqtSignal()
     odroidClient = None
     threadpool = None
 
@@ -133,6 +134,7 @@ class controlSettings(QtWidgets.QWidget,Ui_controlSettings):
             self.control.setConfig(self.keyboard_widget.getConfig())
             self.control.getData_callback = self.getData_callback 
             self.keyboard_widget.configChanged.connect(self.control.setConfig)
+            self.control.escapeClicked.connect(self.escapeClicked)
             self.control.start_control()
 
         if self.s_control.currentText == "Pad":
