@@ -34,7 +34,7 @@
   <property name="styleSheet">
    <string notr="true"/>
   </property>
-  <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0,0,0">
+  <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0,0,0,0">
    <property name="sizeConstraint">
     <enum>QLayout::SetDefaultConstraint</enum>
    </property>
@@ -44,6 +44,22 @@
    <property name="bottomMargin">
     <number>9</number>
    </property>
+   <item>
+    <widget class="QWidget" name="w_batt" native="true">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>0</height>
+      </size>
+     </property>
+    </widget>
+   </item>
    <item>
     <widget class="QLabel" name="l_connection">
      <property name="sizePolicy">

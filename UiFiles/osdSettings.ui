@@ -102,36 +102,10 @@
       </palette>
      </property>
      <layout class="QGridLayout" name="gridLayout">
-      <item row="5" column="0">
-       <widget class="QLabel" name="label_3">
+      <item row="8" column="0">
+       <widget class="QLabel" name="label_6">
         <property name="text">
-         <string>Heading</string>
-        </property>
-       </widget>
-      </item>
-      <item row="7" column="3">
-       <widget class="QRadioButton" name="depth_active">
-        <property name="text">
-         <string/>
-        </property>
-        <property name="checked">
-         <bool>true</bool>
-        </property>
-        <property name="autoExclusive">
-         <bool>false</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="5" column="3">
-       <widget class="QRadioButton" name="heading_active">
-        <property name="text">
-         <string/>
-        </property>
-        <property name="checked">
-         <bool>true</bool>
-        </property>
-        <property name="autoExclusive">
-         <bool>false</bool>
+         <string>Battery</string>
         </property>
        </widget>
       </item>
@@ -142,8 +116,8 @@
         </property>
        </widget>
       </item>
-      <item row="1" column="3">
-       <widget class="QRadioButton" name="horizon_active">
+      <item row="5" column="3">
+       <widget class="QRadioButton" name="heading_active">
         <property name="text">
          <string/>
         </property>
@@ -162,10 +136,47 @@
         </property>
        </widget>
       </item>
-      <item row="5" column="4">
-       <widget class="QSpinBox" name="heading_x">
+      <item row="1" column="4">
+       <widget class="QSpinBox" name="horizon_x">
         <property name="value">
          <number>50</number>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="5">
+       <widget class="QSpinBox" name="horizon_y">
+        <property name="value">
+         <number>50</number>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="3">
+       <widget class="QRadioButton" name="horizon_active">
+        <property name="text">
+         <string/>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+        <property name="autoExclusive">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="0">
+       <widget class="QLabel" name="label_3">
+        <property name="text">
+         <string>Heading</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="4">
+       <widget class="QLabel" name="label_4">
+        <property name="text">
+         <string>X</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
         </property>
        </widget>
       </item>
@@ -183,37 +194,6 @@
         </property>
        </widget>
       </item>
-      <item row="7" column="5">
-       <widget class="QSpinBox" name="depth_y">
-        <property name="value">
-         <number>50</number>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="4">
-       <widget class="QSpinBox" name="horizon_x">
-        <property name="value">
-         <number>50</number>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="5">
-       <widget class="QSpinBox" name="horizon_y">
-        <property name="value">
-         <number>50</number>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="4">
-       <widget class="QLabel" name="label_4">
-        <property name="text">
-         <string>X</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
       <item row="0" column="5">
        <widget class="QLabel" name="label_5">
         <property name="text">
@@ -223,6 +203,52 @@
          <set>Qt::AlignCenter</set>
         </property>
        </widget>
+      </item>
+      <item row="5" column="4">
+       <widget class="QSpinBox" name="heading_x">
+        <property name="value">
+         <number>50</number>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="3">
+       <widget class="QRadioButton" name="depth_active">
+        <property name="text">
+         <string/>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+        <property name="autoExclusive">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="5">
+       <widget class="QSpinBox" name="depth_y">
+        <property name="value">
+         <number>50</number>
+        </property>
+       </widget>
+      </item>
+      <item row="8" column="3">
+       <widget class="QRadioButton" name="battery_active">
+        <property name="text">
+         <string/>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+        <property name="autoExclusive">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="8" column="4">
+       <widget class="QSpinBox" name="battery_x"/>
+      </item>
+      <item row="8" column="5">
+       <widget class="QSpinBox" name="battery_y"/>
       </item>
      </layout>
     </widget>

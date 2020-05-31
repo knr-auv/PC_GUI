@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '.\UiFiles\connectionBar.ui'
+# Form implementation generated from reading ui file 'UiFiles/connectionBar.ui'
 #
 # Created by: PyQt5 UI code generator 5.13.2
 #
@@ -26,6 +26,15 @@ class Ui_connectionBar(object):
         self.horizontalLayout.setSizeConstraint(QtWidgets.QLayout.SetDefaultConstraint)
         self.horizontalLayout.setContentsMargins(-1, 9, -1, 9)
         self.horizontalLayout.setObjectName("horizontalLayout")
+        self.w_batt = QtWidgets.QWidget(connectionBar)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.w_batt.sizePolicy().hasHeightForWidth())
+        self.w_batt.setSizePolicy(sizePolicy)
+        self.w_batt.setMinimumSize(QtCore.QSize(0, 0))
+        self.w_batt.setObjectName("w_batt")
+        self.horizontalLayout.addWidget(self.w_batt)
         self.l_connection = QtWidgets.QLabel(connectionBar)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
         sizePolicy.setHorizontalStretch(0)

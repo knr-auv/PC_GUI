@@ -19,6 +19,20 @@ class osdWidget(QtWidgets.QWidget):
         self.hintTimer.timeout.connect(self.setHintVisibility)
         self.hint = False
         self.config ={}
+        self.timer = QtCore.QTimer()
+        self.timer.timeout.connect(self.a)
+        self.voltage = 16
+        self.batt_percentage = 1
+        self.timer.start(50)
+        
+
+    def a(self):
+        def map(input,in_min,in_max,out_min,out_max):
+            return (input-in_min)*(out_max-out_min)/(in_max-in_min)+out_min
+        self.voltage-=0.01
+        self.batt_percentage = map(self.voltage,9,16,0,1)
+        if self.voltage <=9:
+            self.voltage =16
 
     def paintEvent(self, event):
         qp = QtGui.QPainter()
@@ -35,6 +49,10 @@ class osdWidget(QtWidgets.QWidget):
             if self.config['heading_active']:
                 x,y = self.grid(self.config['heading_x'],self.config['heading_y'])
                 self.drawHeading(x,y,qp)
+            if self.config['battery_active']:
+                x,y = self.grid(self.config['battery_x'],self.config['battery_y'])
+                self.drawBatt(x,y,100,30,qp)
+     
         self.displayStream(qp)
 
     def setConfig(self, arg):
@@ -98,7 +116,9 @@ class osdWidget(QtWidgets.QWidget):
             self.img = self.logo
         self.repaint()
 
-
+    def closeEvent(self, event):
+        self.exitFullScreen()
+        event.ignore()
 
 
     def grid(self, x,y):
@@ -174,6 +194,61 @@ class osdWidget(QtWidgets.QWidget):
         painter.drawLine( centerX+centerWidthAdjust,centerY-centerHeightAdjust,centerX+endWidthAdjust, centerY-endHeightAdjust)
       
         painter.end()
+
+    def drawBatt(self, centerX,centerY, width, height, painter):
+        painter.begin(self.scaledImg)
+        painter.setRenderHint(QtGui.QPainter.Antialiasing, True)
+
+        leftTop = QtCore.QPointF(centerX-width/2,centerY-height/2)
+        rightBottom = QtCore.QPoint(centerX+width/2,centerY+height/2)
+
+        contour = QtGui.QPainterPath()
+        contourRadius = 2
+        contour.moveTo(leftTop.x()+contourRadius, leftTop.y())
+        r = QtCore.QRectF(leftTop,QtCore.QSizeF(contourRadius, contourRadius))
+        contour.arcTo(r,90,90)
+        contour.lineTo(leftTop.x(), rightBottom.y()-contourRadius)
+        r = QtCore.QRectF(QtCore.QPointF(leftTop.x(), rightBottom.y()-contourRadius),QtCore.QSizeF(contourRadius, contourRadius))
+        contour.arcTo(r,180,90)
+        contour.lineTo(rightBottom.x()-contourRadius, rightBottom.y())
+        r = QtCore.QRectF(QtCore.QPointF(rightBottom.x()-contourRadius, rightBottom.y()-contourRadius),QtCore.QSizeF(contourRadius, contourRadius))
+        contour.arcTo(r,270,90)
+        contour.lineTo(rightBottom.x(),centerY+5)
+        contour.lineTo(rightBottom.x()+5,centerY+5)
+        contour.lineTo(rightBottom.x()+5,centerY-5)
+        contour.lineTo(rightBottom.x(),centerY-5)
+        contour.lineTo(rightBottom.x(),leftTop.y()+contourRadius)
+        r = QtCore.QRectF(QtCore.QPointF(rightBottom.x()-contourRadius, leftTop.y()),QtCore.QSizeF(contourRadius, contourRadius))
+        contour.arcTo(r,360,90)
+        contour.lineTo(leftTop.x()+contourRadius,leftTop.y())
+
+        contourRect = contour.controlPointRect()
+        r=QtCore.QRectF(contourRect.x(),contourRect.y(),contourRect.width()*self.batt_percentage, contourRect.height())
+        battArea = QtGui.QPainterPath()
+        battArea.addRect(r)
+        battArea = contour.intersected(battArea)        
+
+        brush = QtGui.QBrush()
+        pen = QtGui.QPen()
+        color = QtGui.QColor()
+        color.setRgbF(1-self.batt_percentage/2, self.batt_percentage,0,1.)
+        brush.setColor(color)
+        brush.setStyle(QtCore.Qt.SolidPattern)
+        painter.fillPath(battArea,brush)
+
+        pen.setWidthF(1)
+        painter.setPen(pen)
+        painter.drawPath(battArea)
+
+        pen.setWidthF(2)
+        painter.setPen(pen)
+        painter.drawPath(contour)
+
+        painter.setFont(QtGui.QFont('roboto'))
+        text = '{:.2f}'.format(self.voltage)+' V'
+        painter.drawText(centerX-painter.fontMetrics().width(text)/2, centerY + (painter.fontMetrics().height())/3, text)
+        painter.end()
+
     def scaleImg(self):
         self.scaledImg  = self.img.scaled(self.size(),QtCore.Qt.KeepAspectRatio)
 
