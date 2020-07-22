@@ -1,6 +1,5 @@
 from PyQt5 import QtWidgets, QtCore, QtGui
 from .controlSettings_ui import Ui_controlSettings
-from pyqtgraph import PlotWidget, plot
 import numpy as np
 import math, threading
 import json
@@ -13,6 +12,7 @@ class controlSettings(QtWidgets.QWidget,Ui_controlSettings):
     escapeClicked = QtCore.pyqtSignal()
     odroidClient = None
     threadpool = None
+    padConnected = False
 
     def __init__(self,parent=None):
        QtWidgets.QWidget.__init__(self,parent)
@@ -23,10 +23,13 @@ class controlSettings(QtWidgets.QWidget,Ui_controlSettings):
        self.controlTimer = QtCore.QTimer()
        self.expo_plot = expo_plot(self)
        self.verticalLayout.addWidget(self.expo_plot)
+       self.vSpacer =QtWidgets.QSpacerItem(0, 0, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+       self.verticalLayout.addItem(self.vSpacer)
        self.keyboard_widget = keyboard_widget(self)
        self.verticalLayout.addWidget(self.keyboard_widget)
         
        self.s_control.activated.connect(self.manage_control)
+       self.b_refresh.clicked.connect(lambda: self.manage_control(1))
        self.b_start.clicked.connect(self.startCtr)
        self.b_arm.setEnabled(False)
        self.e_pitch.valueChanged.connect(self.expo_plot.update)
@@ -36,6 +39,10 @@ class controlSettings(QtWidgets.QWidget,Ui_controlSettings):
        self.e_throttle.valueChanged.connect(self.expo_plot.update)
        self.manage_control(1)
        self.controlStarted = False
+       
+
+    def detectDevice(self):
+        self.padConnected =  padSteering.checkDevice()
 
     def get_config(self):
         config={'pad_deadzone':int(self.e_deadzone.text()),
@@ -107,7 +114,7 @@ class controlSettings(QtWidgets.QWidget,Ui_controlSettings):
     
     def manage_control(self, x):
         if self.s_control.currentText()=="Keyboard":
-
+            self.vSpacer.changeSize(0,0,QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
             self.keyboard_widget.setFocus()
             self.keyboard_widget.show()
             self.b_start.setEnabled(True)
@@ -115,8 +122,16 @@ class controlSettings(QtWidgets.QWidget,Ui_controlSettings):
             self.expo_plot.hide()
             pass
         if self.s_control.currentText()=="Pad":
+            self.vSpacer.changeSize(0, 0, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+            self.detectDevice()
             self.keyboard_widget.hide()
-            self.b_start.setEnabled(False)
+            if not self.padConnected:
+               self.b_start.setEnabled(False)
+               self.w_pad_select.show()
+               self.l_padStatus.setText("Device not detected")
+            else:
+                self.w_pad_select.hide()
+                self.b_start.setEnabled(True)
             self.padSpec.show()
             self.expo_plot.show()
             pass
@@ -134,9 +149,13 @@ class controlSettings(QtWidgets.QWidget,Ui_controlSettings):
             self.keyboard_widget.configChanged.connect(self.control.setConfig)
             self.control.escapeClicked.connect(self.escapeClicked)
             self.control.start_control()
+            logging.debug("Keyboard controll started")
 
         if self.s_control.currentText == "Pad":
-            pass
+            self.control=padSteering()
+            self.controlStarted = True
+            self.control.getData_callback = self.getData_callback 
+            self.control.run()
 
         if self.s_control.currentText()=="Autonomy":
             pass
@@ -550,10 +569,11 @@ class expo_plot(QtWidgets.QWidget):
     def __init__(self, parent):
         QtWidgets.QWidget.__init__(self,parent)
         sizePolicy = QtWidgets.QSizePolicy()
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Ignored)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setWidthForHeight(True)
         self.setSizePolicy(sizePolicy)
         self.setMinimumSize(200,200)
+        self.setMaximumSize(200,200)
         self.data = []
         self.points = 100
         for i in range(-self.points,self.points+1):

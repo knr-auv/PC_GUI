@@ -2,6 +2,7 @@ from .osdSettings_ui import Ui_osdSettings
 from PyQt5 import QtWidgets, QtCore
 import json
 class osdSettings(QtWidgets.QWidget, Ui_osdSettings):
+    
     def __init__(self,parent=None):
         QtWidgets.QWidget.__init__(self,parent)
         self.setupUi(self) 
@@ -18,7 +19,14 @@ class osdSettings(QtWidgets.QWidget, Ui_osdSettings):
         for i in self.findChildren(QtWidgets.QRadioButton):
             i.toggled.connect(lambda: self.osdWidget.setConfig(self.getConfig()))
 
+    def doWhenConnected(self):
+        self.b_setFS.setEnabled(True)
+
+    def doWhenDisconnected(self):
+        self.b_setFS.setEnabled(False)
+
     def setWidget(self, arg):
+        self.b_setFS.setEnabled(False)
         self.osdWidget = arg
         self.b_setFS.clicked.connect(self.osdWidget.showFull)
         self.osdWidget.setConfig(self.getConfig())

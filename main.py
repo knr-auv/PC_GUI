@@ -51,6 +51,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.controlSettings.armSignal.connect(lambda arg: self.odroidClient.arm(arg))
         self.controlSettings.disarmSignal.connect(self.odroidClient.disarm)
         self.pidSetup.request_pid.connect(lambda arg: self.odroidClient.sendPIDRequest(arg))
+        self.pidSetup.request_pid.connect(lambda arg: self.odroidClient.sendPIDRequest(arg))
         self.pidSetup.send_pid.connect(lambda arg: self.odroidClient.sendPID(arg))
         self.boatData.sendData.connect(lambda arg: self.odroidClient.sendControl(arg))
 
@@ -69,9 +70,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     #stuff that will happen after succesful connection    
     def whenConnected(self):
         self.odroidClientConnected = True
+        
 
     def whenDisconnected(self):
         self.controlSettings.disarmed()
+
 
     #connectiong buttons for controlling connection
     def connectButtons(self):
@@ -132,6 +135,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.pidCamera.client = True
         self.controlCamera.client = True
         self.streamClientIsRunning = True
+        self.osdSettings.doWhenConnected()
 
     def stopStreamConnection(self):
         self.cameraContainer.client = False
@@ -144,7 +148,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.pidCamera.setLogo()
  
         self.streamClientIsRunning = False
-    
+        self.osdSettings.doWhenDisconnected()
     def updateStream(self, index=None):
         if index == None:
             self.streamClient.signals.newFrame.connect(self.cameraContainer.update_frame)

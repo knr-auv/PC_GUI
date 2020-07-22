@@ -13,13 +13,13 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_osdSettings(object):
     def setupUi(self, osdSettings):
         osdSettings.setObjectName("osdSettings")
-        osdSettings.resize(582, 447)
+        osdSettings.resize(180, 182)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(osdSettings.sizePolicy().hasHeightForWidth())
         osdSettings.setSizePolicy(sizePolicy)
-        osdSettings.setMinimumSize(QtCore.QSize(100, 116))
+        osdSettings.setMinimumSize(QtCore.QSize(100, 182))
         self.verticalLayout = QtWidgets.QVBoxLayout(osdSettings)
         self.verticalLayout.setObjectName("verticalLayout")
         self.widget = QtWidgets.QWidget(osdSettings)
@@ -50,6 +50,7 @@ class Ui_osdSettings(object):
         self.widget.setPalette(palette)
         self.widget.setObjectName("widget")
         self.gridLayout = QtWidgets.QGridLayout(self.widget)
+        self.gridLayout.setContentsMargins(-1, 9, -1, 9)
         self.gridLayout.setObjectName("gridLayout")
         self.label_6 = QtWidgets.QLabel(self.widget)
         self.label_6.setObjectName("label_6")

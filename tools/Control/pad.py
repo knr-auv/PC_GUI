@@ -2,7 +2,7 @@ from PyQt5 import QtCore
 import inputs, json, time, math, logging, threading
 
 
-class PadSteering(QtCore.QRunnable):
+class padSteering(QtCore.QRunnable):
     def __init__(self, config = None):
         #TODO selecting pad...
         super(PadSteering, self).__init__()
@@ -15,6 +15,10 @@ class PadSteering(QtCore.QRunnable):
         self.lock = threading.Lock()
         self.gamepad = inputs.devices.gamepads[0]
         self.output = {"vertical": 0, 'roll':0, 'pitch':0, "yaw":0, "throttle":0}
+    def checkDevice():
+        if len(inputs.devices.gamepads):
+            return True
+        return False
 
     def process_input(self, event):
         #event types that i dont care

@@ -1,4 +1,5 @@
 from PyQt5 import QtWidgets, QtCore, QtGui
+import logging
 class Keyboard(QtWidgets.QWidget):
     escapeClicked = QtCore.pyqtSignal()
     def __init__(self, parent = None):
@@ -56,6 +57,9 @@ class Keyboard(QtWidgets.QWidget):
 
     def start_control(self):
         self.grabKeyboard()
+        if self.keyboardGrabber()==self:
+            logging.debug("Keyboard succesfully grabbed")
+
     def stop_control(self):
         self.releaseKeyboard()
     def get_data(self):

@@ -2,7 +2,7 @@ import asyncio,socket, struct, threading, logging
 
 from PyQt5 import QtCore
 from concurrent.futures import ThreadPoolExecutor
-
+checked = False
 class odroidClientSignals(QtCore.QObject):
     armed = QtCore.pyqtSignal()
     disarmed = QtCore.pyqtSignal()
@@ -155,6 +155,10 @@ class sender():
         tx_buffer=[self.proto['PAD']]+data
         tx_buffer = struct.pack('<B2f3i',*(tx_buffer))
         self.send_msg(tx_buffer)
+        global checked
+        if(checked==False):
+            checked = True
+            logging.debug("Msg was sent succesfully, connection with odroid has been established")
 
 class odroidClient(QtCore.QRunnable, parser,sender):
     def __init__(self, addr, protocol):

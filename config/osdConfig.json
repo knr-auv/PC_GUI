@@ -5,10 +5,10 @@
  "depth_y": 71,
  "horizon_x": 47,
  "horizon_y": 50,
- "depth_active": false,
- "heading_active": false,
- "horizon_active": false,
- "battery_x": 6,
- "battery_y": 97,
- "battery_active": false
+ "depth_active": true,
+ "heading_active": true,
+ "horizon_active": true,
+ "battery_x": 8,
+ "battery_y": 92,
+ "battery_active": true
 }
