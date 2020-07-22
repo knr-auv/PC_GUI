@@ -1,21 +1,21 @@
 # PC_GUI
 
-## Rules
-   
-   - Each file type has its own folder - don't make a mess.
-   - Every widget should be QWidget. 
-   - If you want to use QtDesigner, don't change the generated file.
-   - File generated from 'widgetname'.ui should be named 'widgetname'_ui.py 
-   - Widget should be controlled via class named 'widgetname' located in 'widgetname'.py. This class should have a method called update and send. 
-   - If it's possible try to keep your widget easily resizable. Add minimum and maximum size.
-   - Qt is based on signals/interrupts. Heavy tasks should be handled by QThreads otherwise application will freeze. 
 
-## Hints
-Start dummyServer and use start_sending() to test widget update/send methods
+## How to
+Recomended python version for running GUI is 3.8. It is possible to run app on python 3.7 but then asyncio goes crazy with debug logs so i recommend to disable/change logging level (line 20 in main.py). 
 
-Get familiar with 'connectionBar.py' - this is what your widget should look like. Each QWidget can act like an standalone application. You can run it by... take a look at connectionBar.py.
+ - install all dependencies
+ - build or [download simulation for windows](https://wutwaw-my.sharepoint.com/:u:/g/personal/01150165_pw_edu_pl/EW7QcjDwYQNAoGdrZEBj8RkBFjlvDoO80C9ZKVyWm6E6Fg?e=b7nTyC "LearnpyQt")
+ - git clone https://github.com/knr-auv/odroid-sim/tree/GuiIntegration
+ - run simulation (simulation must be running before starting odroid client)
+ - run odroid client
+ - run GUI
 
-Use style sheets to create nice labels, buttons etc. Some terrible examples are included in connectionBar.py... 
+All packages are available in standard pip repository. Pip install should work just fine.
 
-
-Good PyQt tutorial: [LearnpyQt](https://www.learnpyqt.com/ "LearnpyQt") 
+Required packages:
+  - asyncio
+  - pyqt5
+  - inputs
+## Control
+Boat can be controlled by keyboard or pad. After selecting the appropriate control method click start then arm. Pad control method can be started only if Xbox one/360 or ps4 pad is detected. All controls and osd settings are automatically stored after each change. They will be loaded every time GUI is launched.
