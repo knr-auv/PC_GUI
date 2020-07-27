@@ -151,8 +151,8 @@ class controlSettings(QtWidgets.QWidget,Ui_controlSettings):
             self.control.start_control()
             logging.debug("Keyboard controll started")
 
-        if self.s_control.currentText == "Pad":
-            self.control=padSteering()
+        if self.s_control.currentText() == "Pad":
+            self.control=padSteering(self.get_config())
             self.controlStarted = True
             self.control.getData_callback = self.getData_callback 
             self.control.run()
@@ -184,7 +184,7 @@ class controlSettings(QtWidgets.QWidget,Ui_controlSettings):
                 pass
 
         elif self.control.mode == "pad":
-            pass
+            self.cotrol.active = False
         elif self.control.mode =="autonomy":
             pass
         #common stuff for each controller except autonomy...
