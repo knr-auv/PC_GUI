@@ -138,7 +138,7 @@ class controlSettings(QtWidgets.QWidget,Ui_controlSettings):
     getData_callback = QtCore.pyqtSignal(object)
     def startCtr(self):
         self.s_control.setEnabled(False)
-        
+
         if self.s_control.currentText() == "Keyboard":
             self.control = Keyboard()
             self.keyboard_widget.disableButtons()

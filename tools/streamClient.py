@@ -1,5 +1,3 @@
-import cv2
-import numpy as np
 import asyncio,socket, struct, logging, time
 from PyQt5 import QtCore
 
