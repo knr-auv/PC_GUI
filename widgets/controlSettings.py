@@ -184,7 +184,7 @@ class controlSettings(QtWidgets.QWidget,Ui_controlSettings):
                 pass
 
         elif self.control.mode == "pad":
-            self.cotrol.active = False
+            self.control.active = False
         elif self.control.mode =="autonomy":
             pass
         #common stuff for each controller except autonomy...
