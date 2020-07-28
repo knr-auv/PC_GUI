@@ -155,7 +155,7 @@ class controlSettings(QtWidgets.QWidget,Ui_controlSettings):
             self.control=padSteering(self.get_config())
             self.controlStarted = True
             self.control.getData_callback = self.getData_callback 
-            self.control.run()
+            self.threadpool.start(self.control)
 
         if self.s_control.currentText()=="Autonomy":
             pass

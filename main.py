@@ -36,6 +36,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.pidCamera.connectButton.hide()
         self.pidCamera.clientData.hide()
         self.controlSettings.escapeClicked.connect(self.controlCamera.exitFullScreen)
+        self.controlSettings.threadpool = self.threadpool
         self.osdSettings.setWidget(self.controlCamera)
 
     def updateWidgets(self):
