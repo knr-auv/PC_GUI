@@ -138,7 +138,7 @@ class controlSettings(QtWidgets.QWidget,Ui_controlSettings):
     getData_callback = QtCore.pyqtSignal(object)
     def startCtr(self):
         self.s_control.setEnabled(False)
-        
+
         if self.s_control.currentText() == "Keyboard":
             self.control = Keyboard()
             self.keyboard_widget.disableButtons()
@@ -151,11 +151,11 @@ class controlSettings(QtWidgets.QWidget,Ui_controlSettings):
             self.control.start_control()
             logging.debug("Keyboard controll started")
 
-        if self.s_control.currentText == "Pad":
-            self.control=padSteering()
+        if self.s_control.currentText() == "Pad":
+            self.control=padSteering(self.get_config())
             self.controlStarted = True
             self.control.getData_callback = self.getData_callback 
-            self.control.run()
+            self.threadpool.start(self.control)
 
         if self.s_control.currentText()=="Autonomy":
             pass
@@ -184,7 +184,7 @@ class controlSettings(QtWidgets.QWidget,Ui_controlSettings):
                 pass
 
         elif self.control.mode == "pad":
-            pass
+            self.control.active = False
         elif self.control.mode =="autonomy":
             pass
         #common stuff for each controller except autonomy...

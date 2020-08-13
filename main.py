@@ -34,6 +34,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def initWidgets(self):
         self.controlSettings.escapeClicked.connect(self.controlCamera.exitFullScreen)
+        self.controlSettings.threadpool = self.threadpool
         self.osdSettings.setWidget(self.controlCamera)
 
     def updateWidgets(self):
