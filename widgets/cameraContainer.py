@@ -9,9 +9,6 @@ class cameraContainer(QtWidgets.QWidget):
         self.verticalLayout = QtWidgets.QVBoxLayout(self)
         spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.horizontalLayout = QtWidgets.QHBoxLayout(self)
-        self.connectButton = QtWidgets.QPushButton(self, text = "Connect")
-        self.clientData = QtWidgets.QLineEdit(self,text = "127.0.0.1:44209")
-        self.connectButton.clicked.connect(self.start_client)
         self.client = False
         self.logo = QtGui.QImage("img/LOGO_OKON1.png")
         self.img = self.logo
@@ -19,8 +16,6 @@ class cameraContainer(QtWidgets.QWidget):
         self.stream.paintEvent=self.pEvent
         #self.verticalLayout.addItem(spacerItem)
         self.verticalLayout.addWidget(self.stream)
-        self.horizontalLayout.addWidget(self.clientData)
-        self.horizontalLayout.addWidget(self.connectButton)
         self.verticalLayout.addLayout(self.horizontalLayout)
         self.repaint()
 

@@ -6,7 +6,7 @@ Recomended python version for running GUI is 3.8. It is possible to run app on p
 
  - install all dependencies
  - build or [download simulation for windows](https://wutwaw-my.sharepoint.com/:u:/g/personal/01150165_pw_edu_pl/EW7QcjDwYQNAoGdrZEBj8RkBFjlvDoO80C9ZKVyWm6E6Fg?e=b7nTyC "LearnpyQt")
- - git clone https://github.com/knr-auv/odroid-sim/tree/GuiIntegration
+ - git clone https://github.com/knr-auv/jetson-v2/tree/GuiIntegration
  - run simulation (simulation must be running before starting odroid client)
  - run odroid client
  - run GUI

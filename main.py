@@ -33,8 +33,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.escShortcut.activated.connect(self.controlCamera.exitFullScreen)
 
     def initWidgets(self):
-        self.pidCamera.connectButton.hide()
-        self.pidCamera.clientData.hide()
         self.controlSettings.escapeClicked.connect(self.controlCamera.exitFullScreen)
         self.osdSettings.setWidget(self.controlCamera)
 
@@ -70,6 +68,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     #stuff that will happen after succesful connection    
     def whenConnected(self):
         self.odroidClientConnected = True
+        self.startStreamConnection()
         
 
     def whenDisconnected(self):
@@ -79,7 +78,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     #connectiong buttons for controlling connection
     def connectButtons(self):
         self.connectionBar.b_connect.pressed.connect(self.manageOdroidConnection)
-        self.cameraContainer.connectButton.clicked.connect(self.manageStreamConnection)
 
     #establishing connection with odroid
     def manageOdroidConnection(self):
@@ -123,10 +121,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 self.startStreamConnection()
 
     def startStreamConnection(self):
-        ip, port = self.cameraContainer.clientData.displayText().split(":")
-        print(ip,port)
+
+        addres=('localhost',8090)
         #self.streamClient = SimulationClient(ip=str('localhost'), port=int(8485))
-        self.streamClient = SimulationClient(ip=str(ip), port=int(port))
+        self.streamClient = SimulationClient(8090,'localhost')
         self.updateStream()
         self.threadpool.start(self.streamClient)
         self.tabs.currentChanged.connect(self.updateStream)
