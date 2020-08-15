@@ -115,17 +115,26 @@ class sender():
             tx_buffer = [self.proto["CONTROL"]]+msg
             tx_buffer = struct.pack('<2BI',*(tx_buffer))
             self.send_msg(tx_buffer)
-        if msg[0] == self.control_spec['STOP_TELEMETRY']:
+        elif msg[0] == self.control_spec['STOP_TELEMETRY']:
             tx_buffer = [self.proto["CONTROL"]]+msg
             tx_buffer = struct.pack('<2B',*(tx_buffer))
             self.send_msg(tx_buffer)
 
-        if msg[0] == self.control_spec['START_PID']:
+        elif msg[0] == self.control_spec['START_PID']:
             tx_buffer = [self.proto["CONTROL"]]+msg
             tx_buffer = struct.pack('<2BI',*(tx_buffer))
             self.send_msg(tx_buffer)
 
-        if msg[0] == self.control_spec['STOP_PID']:
+        elif msg[0] == self.control_spec['STOP_PID']:
+            tx_buffer = [self.proto["CONTROL"]]+msg
+            tx_buffer = struct.pack('<2B',*(tx_buffer))
+            self.send_msg(tx_buffer)
+        elif msg[0]==self.control_spec['START_AUTONOMY']:
+            tx_buffer = [self.proto["CONTROL"]]+msg
+            tx_buffer = struct.pack('<2B',*(tx_buffer))
+            self.send_msg(tx_buffer)
+           
+        elif msg[0]==self.control_spec['STOP_AUTONOMY']:
             tx_buffer = [self.proto["CONTROL"]]+msg
             tx_buffer = struct.pack('<2B',*(tx_buffer))
             self.send_msg(tx_buffer)
@@ -174,6 +183,7 @@ class odroidClient(QtCore.QRunnable, parser,sender):
     def start_telemetry(self, interval):
         self.sendControl([self.protocol["CONTROL_SPEC"]["START_TELEMETRY"],interval])
         logging.debug("Starting telemetry")
+
     def disarm(self):
         logging.debug("DISARMING")
         self.sendControl([self.protocol["CONTROL_SPEC"]["STOP_PID"]])
@@ -181,7 +191,14 @@ class odroidClient(QtCore.QRunnable, parser,sender):
     def arm(self, interval):
         logging.debug("ARMING")
         self.sendControl([self.protocol["CONTROL_SPEC"]["START_PID"], interval])
+
         self.checked = False
+    def startAutonomy(self):
+        self.sendControl([self.protocol["CONTROL_SPEC"]["START_AUTONOMY"]])
+
+    def stopAutonomy(self):
+        self.sendControl([self.protocol["CONTROL_SPEC"]["STOP_AUTONOMY"]])
+
         
     async def client(self):
         self.signals.connectionInfo.emit(("Connecting to: "+ str(self.host)+":"+str(self.port)))

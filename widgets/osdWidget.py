@@ -4,7 +4,7 @@ class osdWidget(QtWidgets.QWidget):
     def __init__(self,parent=None):
         QtWidgets.QWidget.__init__(self,parent)
         self.logo = QtGui.QImage("img/LOGO_OKON1.png")
-        self.img= self.logo
+        self.img= self.logo.copy()
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHeightForWidth(True)
         self.client = False
@@ -104,7 +104,8 @@ class osdWidget(QtWidgets.QWidget):
         self.depth = data[3]
 
     def setLogo(self):
-        self.img = self.logo
+        self.img = self.logo.copy()
+        self.repaint()
 
     def update(self, img):
 
@@ -112,8 +113,8 @@ class osdWidget(QtWidgets.QWidget):
             self.img.loadFromData(img)
             
         else:
-            print("Here")
-            self.img = self.logo
+
+            self.img = self.logo.copy
         self.repaint()
 
     def closeEvent(self, event):

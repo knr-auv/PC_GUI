@@ -157,7 +157,7 @@ class Ui_boatData(object):
         self.l_interval.setText(_translate("boatData", "Telemetry interval (ms):"))
         self.l_mode.setText(_translate("boatData", "mode"))
         self.l_grasper.setText(_translate("boatData", "grasper"))
-        self.t_interval.setText(_translate("boatData", "30"))
+        self.t_interval.setText(_translate("boatData", "50"))
         self.b_start_sending.setText(_translate("boatData", "Set"))
         self.b_stop_sending.setText(_translate("boatData", "Stop telemetry"))
         self.mode_data.setText(_translate("boatData", "---"))

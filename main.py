@@ -74,6 +74,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def whenDisconnected(self):
         self.controlSettings.disarmed()
+        self.stopStreamConnection()
 
 
     #connectiong buttons for controlling connection
@@ -122,14 +123,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 self.startStreamConnection()
 
     def startStreamConnection(self):
-
         addres=('localhost',8090)
-        #self.streamClient = SimulationClient(ip=str('localhost'), port=int(8485))
         self.streamClient = SimulationClient(8090,'localhost')
         self.updateStream()
         self.threadpool.start(self.streamClient)
         self.tabs.currentChanged.connect(self.updateStream)
-
+        
         self.cameraContainer.client = True
         self.pidCamera.client = True
         self.controlCamera.client = True
@@ -137,10 +136,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.osdSettings.doWhenConnected()
 
     def stopStreamConnection(self):
+        self.streamClient.active = False
         self.cameraContainer.client = False
         self.pidCamera.client = False
         self.controlCamera.client = False
-        self.streamClient.active = False
+        
 
         self.cameraContainer.setLogo()
         self.controlCamera.setLogo()
@@ -148,9 +148,15 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
  
         self.streamClientIsRunning = False
         self.osdSettings.doWhenDisconnected()
+
     def updateStream(self, index=None):
         if index == None:
-            self.streamClient.signals.newFrame.connect(self.cameraContainer.update_frame)
+            if self.tabs.currentIndex()==0:
+                self.streamClient.signals.newFrame.connect(self.cameraContainer.update_frame)
+            elif self.tabs.currentIndex() ==1:
+                self.streamClient.signals.newFrame.connect(self.pidCamera.update_frame)
+            elif self.tabs.currentIndex()==2:
+                self.streamClient.signals.newFrame.connect(self.controlCamera.update)
             return
         self.disconnectStream()
         if index ==0:
@@ -159,6 +165,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.streamClient.signals.newFrame.connect(self.pidCamera.update_frame)
         elif index ==2:
             self.streamClient.signals.newFrame.connect(self.controlCamera.update)
+        
     def disconnectStream(self):
         self.streamClient.signals.newFrame.disconnect()
 

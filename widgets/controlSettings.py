@@ -113,18 +113,22 @@ class controlSettings(QtWidgets.QWidget,Ui_controlSettings):
             self.control.config=self.get_config()
     
     def manage_control(self, x):
+        self.padSpec.hide()
+        self.expo_plot.hide()
+        self.keyboard_widget.hide()
+        self.l_interval.show()
+        self.label_13.show()
         if self.s_control.currentText()=="Keyboard":
             self.vSpacer.changeSize(0,0,QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
             self.keyboard_widget.setFocus()
             self.keyboard_widget.show()
             self.b_start.setEnabled(True)
-            self.padSpec.hide()
-            self.expo_plot.hide()
+            
             pass
         if self.s_control.currentText()=="Pad":
             self.vSpacer.changeSize(0, 0, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
             self.detectDevice()
-            self.keyboard_widget.hide()
+            
             if not self.padConnected:
                self.b_start.setEnabled(False)
                self.w_pad_select.show()
@@ -135,6 +139,12 @@ class controlSettings(QtWidgets.QWidget,Ui_controlSettings):
             self.padSpec.show()
             self.expo_plot.show()
             pass
+        if self.s_control.currentText()=="Autonomy":
+            self.vSpacer.changeSize(0, 0, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+            self.l_interval.hide()
+            self.label_13.hide()
+            self.b_start.setEnabled(True)
+            #self.
     getData_callback = QtCore.pyqtSignal(object)
     def startCtr(self):
         self.s_control.setEnabled(False)
@@ -158,7 +168,11 @@ class controlSettings(QtWidgets.QWidget,Ui_controlSettings):
             self.threadpool.start(self.control)
 
         if self.s_control.currentText()=="Autonomy":
-            pass
+            self.controlStarted = True
+            self.odroidClient.startAutonomy()
+            self.b_start.hide()
+            self.b_arm.setEnabled(True)
+            return
 
         #common stuff for each controller except autonomy...
         self.b_start.hide()
@@ -171,7 +185,7 @@ class controlSettings(QtWidgets.QWidget,Ui_controlSettings):
         if self.controlStarted==False:
             return
         self.s_control.setEnabled(True)
-        if self.control.mode =="keyboard":
+        if self.s_control.currentText()=="Keyboard":
             self.keyboard_widget.saveConfig()
             #self.keyPressEvent = self.memKP
             #self.keyReleaseEvent = self.memKR
@@ -183,13 +197,15 @@ class controlSettings(QtWidgets.QWidget,Ui_controlSettings):
             except TypeError:
                 pass
 
-        elif self.control.mode == "pad":
+        elif self.s_control.currentText()=="Pad":
             self.control.active = False
-        elif self.control.mode =="autonomy":
-            pass
+        elif self.s_control.currentText()=="Autonomy":
+            self.odroidClient.stopAutonomy()
+            self.b_start.show()
+            self.b_arm.setEnabled(False)
+            return
         #common stuff for each controller except autonomy...
 
-        self.b_start.show()
         self.controlTimer.stop()
         try:
             self.controlTimer.timeout.disconnect()

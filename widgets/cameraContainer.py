@@ -1,7 +1,5 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
-
-
-
+import copy
 
 class cameraContainer(QtWidgets.QWidget):
     def __init__(self,parent=None):
@@ -11,7 +9,7 @@ class cameraContainer(QtWidgets.QWidget):
         self.horizontalLayout = QtWidgets.QHBoxLayout(self)
         self.client = False
         self.logo = QtGui.QImage("img/LOGO_OKON1.png")
-        self.img = self.logo
+        self.img = self.logo.copy()
         self.stream = QtWidgets.QWidget(self)
         self.stream.paintEvent=self.pEvent
         #self.verticalLayout.addItem(spacerItem)
@@ -34,11 +32,11 @@ class cameraContainer(QtWidgets.QWidget):
         if self.client == True:
             self.img.loadFromData(img)
         else:
-            self.img = self.logo
+            self.img = self.logo.copy()
         self.repaint()
 
     def setLogo(self):
-        self.img = self.logo
+        self.img = self.logo.copy()
         self.repaint()
 
     def pEvent(self,e):
