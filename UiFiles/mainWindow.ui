@@ -67,7 +67,7 @@
        <enum>QTabWidget::Rounded</enum>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="test">
        <property name="sizePolicy">
@@ -297,16 +297,6 @@
           <item>
            <widget class="controlSettings" name="controlSettings" native="true"/>
           </item>
-          <item>
-           <widget class="osdSettings" name="osdSettings" native="true">
-            <property name="autoFillBackground">
-             <bool>false</bool>
-            </property>
-            <property name="styleSheet">
-             <string notr="true"/>
-            </property>
-           </widget>
-          </item>
          </layout>
         </item>
         <item>
@@ -384,12 +374,6 @@
    <class>osdWidget</class>
    <extends>QWidget</extends>
    <header>widgets/osdWidget.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>osdSettings</class>
-   <extends>QWidget</extends>
-   <header>widgets/osdSettings.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

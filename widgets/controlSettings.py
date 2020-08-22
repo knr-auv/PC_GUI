@@ -22,11 +22,14 @@ class controlSettings(QtWidgets.QWidget,Ui_controlSettings):
        self.armTimeout = QtCore.QTimer()
        self.controlTimer = QtCore.QTimer()
        self.expo_plot = expo_plot(self)
-       self.verticalLayout.addWidget(self.expo_plot)
-       self.vSpacer =QtWidgets.QSpacerItem(0, 0, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
-       self.verticalLayout.addItem(self.vSpacer)
+       self.verticalLayout.insertWidget(2,self.expo_plot)
+       
        self.keyboard_widget = keyboard_widget(self)
-       self.verticalLayout.addWidget(self.keyboard_widget)
+       self.autonomy_widget =autonomyWidget(self)
+       self.vSpacer = QtWidgets.QSpacerItem(0,0,QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.Preferred)
+       self.verticalLayout.insertItem(3, self.vSpacer)
+       self.verticalLayout.insertWidget(1,self.keyboard_widget)
+       self.verticalLayout.insertWidget(1,self.autonomy_widget)
         
        self.s_control.activated.connect(self.manage_control)
        self.b_refresh.clicked.connect(lambda: self.manage_control(1))
@@ -116,19 +119,21 @@ class controlSettings(QtWidgets.QWidget,Ui_controlSettings):
         self.padSpec.hide()
         self.expo_plot.hide()
         self.keyboard_widget.hide()
+        self.autonomy_widget.hide()
         self.l_interval.show()
         self.label_13.show()
         if self.s_control.currentText()=="Keyboard":
-            self.vSpacer.changeSize(0,0,QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
+            self.vSpacer.changeSize(0,0,QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.Preferred)
             self.keyboard_widget.setFocus()
             self.keyboard_widget.show()
             self.b_start.setEnabled(True)
             
             pass
-        if self.s_control.currentText()=="Pad":
-            self.vSpacer.changeSize(0, 0, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        elif self.s_control.currentText()=="Pad":
             self.detectDevice()
-            
+
+            self.vSpacer.changeSize(0,0,QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.MinimumExpanding)
+
             if not self.padConnected:
                self.b_start.setEnabled(False)
                self.w_pad_select.show()
@@ -139,12 +144,16 @@ class controlSettings(QtWidgets.QWidget,Ui_controlSettings):
             self.padSpec.show()
             self.expo_plot.show()
             pass
-        if self.s_control.currentText()=="Autonomy":
-            self.vSpacer.changeSize(0, 0, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        elif self.s_control.currentText()=="Autonomy":
+            self.vSpacer.changeSize(0,0,QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.Preferred)
+       
             self.l_interval.hide()
             self.label_13.hide()
             self.b_start.setEnabled(True)
+            self.autonomy_widget.show()
             #self.
+        if not self.odroidClient:
+            self.b_start.setEnabled(False)
     getData_callback = QtCore.pyqtSignal(object)
     def startCtr(self):
         self.s_control.setEnabled(False)
@@ -213,6 +222,34 @@ class controlSettings(QtWidgets.QWidget,Ui_controlSettings):
             pass
         self.b_start.show()
         self.b_arm.setEnabled(False)
+
+class autonomyWidget(QtWidgets.QWidget):
+
+    def __init__(self,parent=None):
+       QtWidgets.QWidget.__init__(self,parent)
+       mainLayout = QtWidgets.QVBoxLayout(self)
+       self.logBox = QtWidgets.QPlainTextEdit(self)
+       self.logBox.setReadOnly(True)
+       self.setStyleSheet("background-color: LightGray;") 
+       self.updateLog("Autonomy thread logger")
+       sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.Expanding)
+       self.logBox.setSizePolicy(sizePolicy)
+       self.setSizePolicy(sizePolicy)
+       self.logBox.ensureCursorVisible()
+       mainLayout.addChildWidget(self.logBox)
+       self.setLayout(mainLayout)
+
+    def updateLog(self, str):
+        self.logBox.appendPlainText(str)
+        #self.logBox.sc
+        #self.logBox.insertPlainText
+    def resizeEvent(self, ev):
+        self.logBox.setMinimumSize(self.size())
+       
+
+       
+       
+
 
 class keyboard_widget(QtWidgets.QWidget):
     getData_callback = QtCore.pyqtSignal(object)

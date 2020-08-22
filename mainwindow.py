@@ -170,11 +170,6 @@ class Ui_MainWindow(object):
         self.controlSettings = controlSettings(self.control)
         self.controlSettings.setObjectName("controlSettings")
         self.verticalLayout_6.addWidget(self.controlSettings)
-        self.osdSettings = osdSettings(self.control)
-        self.osdSettings.setAutoFillBackground(False)
-        self.osdSettings.setStyleSheet("")
-        self.osdSettings.setObjectName("osdSettings")
-        self.verticalLayout_6.addWidget(self.osdSettings)
         self.horizontalLayout_8.addLayout(self.verticalLayout_6)
         self.controlCamera = osdWidget(self.control)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Ignored, QtWidgets.QSizePolicy.Ignored)
@@ -196,7 +191,7 @@ class Ui_MainWindow(object):
         MainWindow.setStatusBar(self.statusbar)
 
         self.retranslateUi(MainWindow)
-        self.tabs.setCurrentIndex(0)
+        self.tabs.setCurrentIndex(2)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
@@ -211,7 +206,6 @@ from widgets.cameraContainer import cameraContainer
 from widgets.connectionBar import connectionBar
 from widgets.controlSettings import controlSettings
 from widgets.engineData import engineData
-from widgets.osdSettings import osdSettings
 from widgets.osdWidget import osdWidget
 from widgets.pidSetup import pidSetup
 

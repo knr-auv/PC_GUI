@@ -15,6 +15,7 @@ class odroidClientSignals(QtCore.QObject):
     connectionTerminated = QtCore.pyqtSignal()
     connectionRefused = QtCore.pyqtSignal()
     clientConnected = QtCore.pyqtSignal()
+    receivedAutonomyMsg = QtCore.pyqtSignal(object)
 
 class parser():
     def parse(self, data):
@@ -68,6 +69,12 @@ class parser():
                 elif data[1]==control_spec["DISARMED"]:
                     logging.debug("DISARMED")
                     self.signals.disarmed.emit()
+
+            elif data[0] == proto["AUTONOMY_MSG"]:
+                msg = struct.unpack('<2B'+str(data[1])+'s',data)
+                text = msg[2].decode('utf-8')
+                self.signals.receivedAutonomyMsg.emit(text)
+
         except:
             sys.exc_info()
             logging.critical("error while parsing data")

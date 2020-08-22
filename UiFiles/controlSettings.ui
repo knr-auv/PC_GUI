@@ -510,34 +510,6 @@
              </property>
             </widget>
            </item>
-           <item row="1" column="0">
-            <widget class="QLabel" name="label_9">
-             <property name="text">
-              <string>Pitch angle</string>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="0">
-            <widget class="QLabel" name="label_10">
-             <property name="text">
-              <string>Yaw</string>
-             </property>
-            </widget>
-           </item>
-           <item row="3" column="0">
-            <widget class="QLabel" name="label_11">
-             <property name="text">
-              <string>Vertical</string>
-             </property>
-            </widget>
-           </item>
-           <item row="4" column="0">
-            <widget class="QLabel" name="label_12">
-             <property name="text">
-              <string>Throttle</string>
-             </property>
-            </widget>
-           </item>
            <item row="0" column="1">
             <widget class="QSpinBox" name="l_roll">
              <property name="suffix">
@@ -551,6 +523,13 @@
              </property>
             </widget>
            </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="label_9">
+             <property name="text">
+              <string>Pitch angle</string>
+             </property>
+            </widget>
+           </item>
            <item row="1" column="1">
             <widget class="QSpinBox" name="l_pitch">
              <property name="suffix">
@@ -558,6 +537,13 @@
              </property>
              <property name="value">
               <number>30</number>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QLabel" name="label_10">
+             <property name="text">
+              <string>Yaw</string>
              </property>
             </widget>
            </item>
@@ -574,6 +560,13 @@
              </property>
             </widget>
            </item>
+           <item row="3" column="0">
+            <widget class="QLabel" name="label_11">
+             <property name="text">
+              <string>Vertical</string>
+             </property>
+            </widget>
+           </item>
            <item row="3" column="1">
             <widget class="QSpinBox" name="l_vertical">
              <property name="buttonSymbols">
@@ -584,6 +577,13 @@
              </property>
              <property name="value">
               <number>500</number>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="0">
+            <widget class="QLabel" name="label_12">
+             <property name="text">
+              <string>Throttle</string>
              </property>
             </widget>
            </item>
@@ -617,8 +617,19 @@
      </layout>
     </widget>
    </item>
+   <item>
+    <widget class="osdSettings" name="osdSettings" native="true"/>
+   </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>osdSettings</class>
+   <extends>QWidget</extends>
+   <header>widgets/osdSettings.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>
