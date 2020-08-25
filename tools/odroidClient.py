@@ -24,11 +24,7 @@ class parser():
         control_spec = self.protocol["CONTROL_SPEC"]
         try:
             if data[0]== proto["PID"]:
-                ROLL = 1
-                PITCH = 2
-                YAW = 3
-                ALL = 4
-                if data[1]!= ALL:
+                if data[1]!= pid_spec['all']:
                     msg = struct.unpack('<2B3f', data)
                     msg = list(msg)
                     msg.pop(0)
@@ -38,9 +34,15 @@ class parser():
                         msg[0] ='pitch'
                     elif msg[0]==pid_spec["yaw"]:
                         msg[0]='yaw'
+                    elif msg[0]==pid_spec["a_roll"]:
+                        msg[0]='a_roll'
+                    elif msg[0]==pid_spec["a_pitch"]:
+                        msg[0]='a_pitch'
+                    elif msg[0]==pid_spec["depth"]:
+                        msg[0]='depth'
                     self.signals.receivedPID.emit(msg)
                 elif data[1]==pid_spec["all"]:
-                    msg  = struct.unpack('<2B9f', data)
+                    msg  = struct.unpack('<2B18f', data)
                     msg = list(msg)
                     msg.pop(0)
                     msg[0]='all'
@@ -69,6 +71,7 @@ class parser():
                 elif data[1]==control_spec["DISARMED"]:
                     logging.debug("DISARMED")
                     self.signals.disarmed.emit()
+
 
             elif data[0] == proto["AUTONOMY_MSG"]:
                 msg = struct.unpack('<2B'+str(data[1])+'s',data)
@@ -104,17 +107,23 @@ class sender():
             spec = self.pid_spec["yaw"]
         elif axis =='all':
             spec = self.pid_spec["all"]
+        elif axis == 'a_pitch':
+            spec = self.pid_spec['a_pitch']
+        elif axis == 'a_roll':
+            spec = self.pid_spec['a_roll']
+        elif axis == 'depth':
+            spec = self.pid_spec['depth']
         else:
             logging.debug(str(axis)+"is not a valid argument of sendPid. Valid arguments: 'roll', 'pitch', 'yaw', 'all'")
             return
         PID.pop(0)
-        if spec != 4:
+        if spec != self.pid_spec['all']:
             tx_buffer = [self.proto["PID"],spec]  + PID
             tx_buffer = struct.pack('<2B3f', *(tx_buffer))
             self.send_msg(tx_buffer)
-        elif spec == 4:
+        elif spec == self.pid_spec['all']:
             tx_buffer = [self.proto["PID"],spec]  + PID
-            tx_buffer = struct.pack('<2B9f', *(tx_buffer))
+            tx_buffer = struct.pack('<2B18f', *(tx_buffer))
             self.send_msg(tx_buffer)
 
     def sendControl(self, msg):
@@ -145,6 +154,11 @@ class sender():
             tx_buffer = [self.proto["CONTROL"]]+msg
             tx_buffer = struct.pack('<2B',*(tx_buffer))
             self.send_msg(tx_buffer)
+        elif msg[0]==self.control_spec['MODE']:
+            tx_buffer = [self.proto["CONTROL"]]+msg
+            tx_buffer = struct.pack('<3B',*(tx_buffer))
+            self.send_msg(tx_buffer)
+
 
     def sendPIDRequest(self, axis):
         if axis=='roll':
@@ -153,6 +167,12 @@ class sender():
             spec = self.pid_spec["pitch"]
         elif axis == 'yaw':
             spec = self.pid_spec["yaw"]
+        elif axis=='a_roll':
+            spec=self.pid_spec["a_roll"]
+        elif axis=='a_pitch':
+            spec=self.pid_spec["a_pitch"]
+        elif axis=='depth':
+            spec=self.pid_spec["depth"]
         elif axis =='all':
             spec = self.pid_spec["all"]
         else:
@@ -205,6 +225,8 @@ class odroidClient(QtCore.QRunnable, parser,sender):
 
     def stopAutonomy(self):
         self.sendControl([self.protocol["CONTROL_SPEC"]["STOP_AUTONOMY"]])
+    def setMode(self, mode):
+        self.sendControl([self.protocol["CONTROL_SPEC"]["MODE"], mode])
 
         
     async def client(self):

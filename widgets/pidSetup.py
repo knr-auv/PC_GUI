@@ -57,6 +57,9 @@ class pidSetup(QtWidgets.QWidget, Ui_pidSetup):
         self.roll_pid=PID()
         self.pitch_pid=PID()
         self.yaw_pid=PID()
+        self.l_roll_pid = PID()
+        self.l_pitch_pid = PID()
+        self.depth_pid = PID()
 
     def connect_buttons(self):
         self.roll_set_btn.clicked.connect(lambda x: self.pidSend('roll'))
@@ -65,6 +68,12 @@ class pidSetup(QtWidgets.QWidget, Ui_pidSetup):
         self.pitch_restore_btn.clicked.connect(lambda x: self.pidRequest('pitch'))
         self.yaw_set_btn.clicked.connect(lambda x: self.pidSend('yaw'))
         self.yaw_restore_btn.clicked.connect(lambda x: self.pidRequest('yaw'))
+        self.roll_level_set_btn.clicked.connect(lambda x: self.pidSend('a_roll'))
+        self.roll_level_restore_btn.clicked.connect(lambda x: self.pidRequest('a_roll'))
+        self.pitch_level_set_btn.clicked.connect(lambda x: self.pidSend('a_pitch'))
+        self.pitch_level_restore_btn.clicked.connect(lambda x: self.pidRequest('a_pitch'))
+        self.depth_set_btn.clicked.connect(lambda x: self.pidSend('depth'))
+        self.depth_restore_btn.clicked.connect(lambda x: self.pidRequest('depth'))
         self.all_set_btn.clicked.connect(lambda x: self.pidSend('all'))
         self.all_restore_btn.clicked.connect(lambda x: self.pidRequest('all'))
 
@@ -95,6 +104,27 @@ class pidSetup(QtWidgets.QWidget, Ui_pidSetup):
             self.send_pid.emit(['yaw',self.yaw_pid.getKp(),self.yaw_pid.getKi(),self.yaw_pid.getKd()])
             message="Yaw PID set\nKp: {:.2f} Ki: {:.2f} Kd: {:.2f}".format(self.yaw_pid.getKp(), self.yaw_pid.getKi(), self.yaw_pid.getKd())
             self.status.setText(message)
+        if data=='a_roll':
+            self.l_roll_pid.setKp(float(self.roll_level_kp_edit.value()))
+            self.l_roll_pid.setKi(float(self.roll_level_ki_edit.value()))
+            self.l_roll_pid.setKd(float(self.roll_level_kd_edit.value()))
+            self.send_pid.emit(['l_roll',self.l_roll_pid.getKp(),self.l_roll_pid.getKi(),self.l_roll_pid.getKd()])
+            message="Level roll PID set\nKp: {:.2f} Ki: {:.2f} Kd: {:.2f}".format(self.l_roll_pid.getKp(), self.l_roll_pid.getKi(), self.l_roll_pid.getKd())
+            self.status.setText(message)
+        if data=='a_pitch':
+            self.l_pitch_pid.setKp(float(self.pitch_level_kp_edit.value()))
+            self.l_pitch_pid.setKi(float(self.pitch_level_ki_edit.value()))
+            self.l_pitch_pid.setKd(float(self.pitch_level_kd_edit.value()))
+            self.send_pid.emit(['l_pitch',self.l_pitch_pid.getKp(),self.l_pitch_pid.getKi(),self.l_pitch_pid.getKd()])
+            message="Level pitch PID set\nKp: {:.2f} Ki: {:.2f} Kd: {:.2f}".format(self.l_pitch_pid.getKp(), self.l_pitch_pid.getKi(), self.l_pitch_pid.getKd())
+            self.status.setText(message)
+        if data=='depth':
+            self.depth_pid.setKp(float(self.depth_kp_edit.value()))
+            self.depth_pid.setKi(float(self.depth_ki_edit.value()))
+            self.depth_pid.setKd(float(self.depth_kd_edit.value()))
+            self.send_pid.emit(['depth',self.depth_pid.getKp(),self.depth_pid.getKi(),self.depth_pid.getKd()])
+            message="depth PID set\nKp: {:.2f} Ki: {:.2f} Kd: {:.2f}".format(self.depth_pid.getKp(), self.depth_pid.getKi(), self.depth_pid.getKd())
+            self.status.setText(message)
         if data=='all':
             self.roll_pid.setKp(float(self.roll_kp_edit.value()))
             self.roll_pid.setKi(float(self.roll_ki_edit.value()))
@@ -105,15 +135,30 @@ class pidSetup(QtWidgets.QWidget, Ui_pidSetup):
             self.yaw_pid.setKp(float(self.yaw_kp_edit.value()))
             self.yaw_pid.setKi(float(self.yaw_ki_edit.value()))
             self.yaw_pid.setKd(float(self.yaw_kd_edit.value()))
+            self.l_roll_pid.setKp(float(self.roll_level_kp_edit.value()))
+            self.l_roll_pid.setKi(float(self.roll_level_ki_edit.value()))
+            self.l_roll_pid.setKd(float(self.roll_level_kd_edit.value()))
+            self.l_pitch_pid.setKp(float(self.pitch_level_kp_edit.value()))
+            self.l_pitch_pid.setKi(float(self.pitch_level_ki_edit.value()))
+            self.l_pitch_pid.setKd(float(self.pitch_level_kd_edit.value()))
+            self.depth_pid.setKp(float(self.depth_kp_edit.value()))
+            self.depth_pid.setKi(float(self.depth_ki_edit.value()))
+            self.depth_pid.setKd(float(self.depth_kd_edit.value()))
             self.send_pid.emit([
                 'all',self.roll_pid.getKp(),self.roll_pid.getKi(),self.roll_pid.getKd(),
                 self.pitch_pid.getKp(),self.pitch_pid.getKi(),self.pitch_pid.getKd(),
-                self.yaw_pid.getKp(),self.yaw_pid.getKi(),self.yaw_pid.getKd()
+                self.yaw_pid.getKp(),self.yaw_pid.getKi(),self.yaw_pid.getKd(),
+                self.l_roll_pid.getKp(),self.l_roll_pid.getKi(),self.l_roll_pid.getKd(),
+                self.l_pitch_pid.getKp(), self.l_pitch_pid.getKi(), self.l_pitch_pid.getKd(),
+                self.depth_pid.getKp(), self.depth_pid.getKi(),self.depth_pid.getKd()
                 ])
             message="All PIDs set"
             message+="\nRoll PID Kp: {:.2f} Ki: {:.2f} Kd: {:.2f}".format(self.roll_pid.getKp(), self.roll_pid.getKi(), self.roll_pid.getKd())
             message+="\nPitch PID Kp: {:.2f} Ki: {:.2f} Kd: {:.2f}".format(self.pitch_pid.getKp(), self.pitch_pid.getKi(), self.pitch_pid.getKd())
             message+="\nYaw PID Kp: {:.2f} Ki: {:.2f} Kd: {:.2f}".format(self.yaw_pid.getKp(), self.yaw_pid.getKi(), self.yaw_pid.getKd())
+            message+="\nLevel roll PID Kp: {:.2f} Ki: {:.2f} Kd: {:.2f}".format(self.l_roll_pid.getKp(),self.l_roll_pid.getKi(),self.l_roll_pid.getKd())
+            message+="\nlevel pitch PID Kp: {:.2f} Ki: {:.2f} Kd: {:.2f}".format(self.l_pitch_pid.getKp(), self.l_pitch_pid.getKi(), self.l_pitch_pid.getKd())
+            message+="\ndepth PID Kp: {:.2f} Ki: {:.2f} Kd: {:.2f}".format(self.depth_pid.getKp(), self.depth_pid.getKi(),self.depth_pid.getKd())
             self.status.setText(message)
 
     def update(self, data):
@@ -146,6 +191,33 @@ class pidSetup(QtWidgets.QWidget, Ui_pidSetup):
             self.yaw_kd_edit.setValue(self.yaw_pid.getKd())
             message="Yaw PID restored from odroid\nKp: {:.2f} Ki: {:.2f} Kd: {:.2f}".format(self.yaw_pid.getKp(), self.yaw_pid.getKi(), self.yaw_pid.getKd())
             self.status.setText(message)
+        if data[0]=='a_roll':
+            self.l_roll_pid.setKp(float(data[1]))
+            self.l_roll_pid.setKi(float(data[2]))
+            self.l_roll_pid.setKd(float(data[3]))
+            self.roll_level_kp_edit.setValue(self.l_roll_pid.getKp())
+            self.roll_level_ki_edit.setValue(self.l_roll_pid.getKi())
+            self.roll_level_kd_edit.setValue(self.l_roll_pid.getKd())
+            message="Roll PID restored from odroid\nKp: {:.2f} Ki: {:.2f} Kd: {:.2f}".format(self.l_roll_pid.getKp(), self.l_roll_pid.getKi(), self.l_roll_pid.getKd())
+            self.status.setText(message)
+        if data[0]=='a_pitch':
+            self.l_pitch_pid.setKp(float(data[1]))
+            self.l_pitch_pid.setKi(float(data[2]))
+            self.l_pitch_pid.setKd(float(data[3]))
+            self.pitch_level_kp_edit.setValue(self.l_pitch_pid.getKp())
+            self.pitch_level_kp_edit.setValue(self.l_pitch_pid.getKi())
+            self.pitch_level_kp_edit.setValue(self.l_pitch_pid.getKd())
+            message="Roll PID restored from odroid\nKp: {:.2f} Ki: {:.2f} Kd: {:.2f}".format(self.l_pitch_pid.getKp(), self.l_pitch_pid.getKi(), self.l_pitch_pid.getKd())
+            self.status.setText(message)
+        if data[0]=='depth':
+            self.depth_pid.setKp(float(data[1]))
+            self.depth_pid.setKi(float(data[2]))
+            self.depth_pid.setKd(float(data[3]))
+            self.depth_kp_edit.setValue(self.depth_pid.getKp())
+            self.depth_ki_edit.setValue(self.depth_pid.getKi())
+            self.depth_kd_edit.setValue(self.depth_pid.getKd())
+            message="depth PID restored from odroid\nKp: {:.2f} Ki: {:.2f} Kd: {:.2f}".format(self.depth_pid.getKp(), self.depth_pid.getKi(), self.depth_pid.getKd())
+            self.status.setText(message)
 
         if data[0]=='all':
             self.roll_pid.setKp(float(data[1]))
@@ -157,6 +229,16 @@ class pidSetup(QtWidgets.QWidget, Ui_pidSetup):
             self.yaw_pid.setKp(float(data[7]))
             self.yaw_pid.setKi(float(data[8]))
             self.yaw_pid.setKd(float(data[9]))
+            self.l_roll_pid.setKp(float(data[10]))
+            self.l_roll_pid.setKi(float(data[11]))
+            self.l_roll_pid.setKd(float(data[12]))
+            self.l_pitch_pid.setKp(float(data[13]))
+            self.l_pitch_pid.setKi(float(data[14]))
+            self.l_pitch_pid.setKd(float(data[15]))
+            self.depth_pid.setKp(float(data[16]))
+            self.depth_pid.setKi(float(data[17]))
+            self.depth_pid.setKd(float(data[18]))
+            
             self.roll_kp_edit.setValue(self.roll_pid.getKp())
             self.roll_ki_edit.setValue(self.roll_pid.getKi())
             self.roll_kd_edit.setValue(self.roll_pid.getKd())
@@ -166,10 +248,23 @@ class pidSetup(QtWidgets.QWidget, Ui_pidSetup):
             self.yaw_kp_edit.setValue(self.yaw_pid.getKp())
             self.yaw_ki_edit.setValue(self.yaw_pid.getKi())
             self.yaw_kd_edit.setValue(self.yaw_pid.getKd())
+
+            self.roll_level_kp_edit.setValue(self.l_roll_pid.getKp())
+            self.roll_level_ki_edit.setValue(self.l_roll_pid.getKi())
+            self.roll_level_kd_edit.setValue(self.l_roll_pid.getKd())
+            self.pitch_level_kp_edit.setValue(self.l_pitch_pid.getKp())
+            self.pitch_level_ki_edit.setValue(self.l_pitch_pid.getKi())
+            self.pitch_level_kd_edit.setValue(self.l_pitch_pid.getKd())
+            self.depth_kp_edit.setValue(self.depth_pid.getKp())
+            self.depth_ki_edit.setValue(self.depth_pid.getKi())
+            self.depth_kd_edit.setValue(self.depth_pid.getKd())
             message="All PIDs restored from odroid"
             message+="\nRoll PID Kp: {:.2f} Ki: {:.2f} Kd: {:.2f}".format(self.roll_pid.getKp(), self.roll_pid.getKi(), self.roll_pid.getKd())
             message+="\nPitch PID Kp: {:.2f} Ki: {:.2f} Kd: {:.2f}".format(self.pitch_pid.getKp(), self.pitch_pid.getKi(), self.pitch_pid.getKd())
             message+="\nYaw PID Kp: {:.2f} Ki: {:.2f} Kd: {:.2f}".format(self.yaw_pid.getKp(), self.yaw_pid.getKi(), self.yaw_pid.getKd())
+            message+="\nLevel roll PID Kp: {:.2f} Ki: {:.2f} Kd: {:.2f}".format(self.l_roll_pid.getKp(),self.l_roll_pid.getKi(),self.l_roll_pid.getKd())
+            message+="\nlevel pitch PID Kp: {:.2f} Ki: {:.2f} Kd: {:.2f}".format(self.l_pitch_pid.getKp(), self.l_pitch_pid.getKi(), self.l_pitch_pid.getKd())
+            message+="\ndepth PID Kp: {:.2f} Ki: {:.2f} Kd: {:.2f}".format(self.depth_pid.getKp(), self.depth_pid.getKi(),self.depth_pid.getKd())
             self.status.setText(message)
 
 

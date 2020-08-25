@@ -42,7 +42,8 @@ class controlSettings(QtWidgets.QWidget,Ui_controlSettings):
        self.e_throttle.valueChanged.connect(self.expo_plot.update)
        self.manage_control(1)
        self.controlStarted = False
-       
+       self.mode_btn.clicked.connect(lambda: self.odroidClient.setMode(self.mode_box.currentIndex()))
+       self.mode_btn.setEnabled(False)
 
     def detectDevice(self):
         self.padConnected =  padSteering.checkDevice()

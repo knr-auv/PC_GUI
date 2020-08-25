@@ -72,11 +72,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def whenConnected(self):
         self.odroidClientConnected = True
         self.startStreamConnection()
-        
+        self.controlSettings.mode_btn.setEnabled(True)
 
     def whenDisconnected(self):
         self.controlSettings.disarmed()
         self.stopStreamConnection()
+        self.controlSettings.mode_btn.setEnabled(False)
 
 
     #connectiong buttons for controlling connection

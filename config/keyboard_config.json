@@ -3,7 +3,7 @@
  "throttle_stop": 0.7,
  "vertical_rate": 50,
  "vertical_stop": 0.7,
- "yaw_rate": 50,
+ "yaw_rate": 5,
  "yaw_stop": 0.0,
  "roll_stop": 0,
  "pitch_stop": 0,
