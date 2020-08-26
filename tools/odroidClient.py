@@ -25,7 +25,7 @@ class parser():
         try:
             if data[0]== proto["PID"]:
                 if data[1]!= pid_spec['all']:
-                    msg = struct.unpack('<2B3f', data)
+                    msg = struct.unpack('<2B4f', data)
                     msg = list(msg)
                     msg.pop(0)
                     if msg[0]==pid_spec["roll"]:
@@ -34,15 +34,11 @@ class parser():
                         msg[0] ='pitch'
                     elif msg[0]==pid_spec["yaw"]:
                         msg[0]='yaw'
-                    elif msg[0]==pid_spec["a_roll"]:
-                        msg[0]='a_roll'
-                    elif msg[0]==pid_spec["a_pitch"]:
-                        msg[0]='a_pitch'
                     elif msg[0]==pid_spec["depth"]:
                         msg[0]='depth'
                     self.signals.receivedPID.emit(msg)
                 elif data[1]==pid_spec["all"]:
-                    msg  = struct.unpack('<2B18f', data)
+                    msg  = struct.unpack('<2B16f', data)
                     msg = list(msg)
                     msg.pop(0)
                     msg[0]='all'
@@ -107,10 +103,6 @@ class sender():
             spec = self.pid_spec["yaw"]
         elif axis =='all':
             spec = self.pid_spec["all"]
-        elif axis == 'a_pitch':
-            spec = self.pid_spec['a_pitch']
-        elif axis == 'a_roll':
-            spec = self.pid_spec['a_roll']
         elif axis == 'depth':
             spec = self.pid_spec['depth']
         else:
@@ -119,11 +111,11 @@ class sender():
         PID.pop(0)
         if spec != self.pid_spec['all']:
             tx_buffer = [self.proto["PID"],spec]  + PID
-            tx_buffer = struct.pack('<2B3f', *(tx_buffer))
+            tx_buffer = struct.pack('<2B4f', *(tx_buffer))
             self.send_msg(tx_buffer)
         elif spec == self.pid_spec['all']:
             tx_buffer = [self.proto["PID"],spec]  + PID
-            tx_buffer = struct.pack('<2B18f', *(tx_buffer))
+            tx_buffer = struct.pack('<2B16f', *(tx_buffer))
             self.send_msg(tx_buffer)
 
     def sendControl(self, msg):
@@ -167,10 +159,6 @@ class sender():
             spec = self.pid_spec["pitch"]
         elif axis == 'yaw':
             spec = self.pid_spec["yaw"]
-        elif axis=='a_roll':
-            spec=self.pid_spec["a_roll"]
-        elif axis=='a_pitch':
-            spec=self.pid_spec["a_pitch"]
         elif axis=='depth':
             spec=self.pid_spec["depth"]
         elif axis =='all':
