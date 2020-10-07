@@ -18,6 +18,8 @@ class osdWidget(QtWidgets.QWidget):
         self.hintTimer = QtCore.QTimer()
         self.hintTimer.timeout.connect(self.setHintVisibility)
         self.hint = False
+        self.rectangle = False
+        self.detections = list()
         self.config ={}
         self.timer = QtCore.QTimer()
         self.timer.timeout.connect(self.a)
@@ -38,6 +40,8 @@ class osdWidget(QtWidgets.QWidget):
         qp = QtGui.QPainter()
         self.scaleImg()
         if self.client ==True:
+            if self.rectangle == True:
+                pass
             if self.hint == True:
                 self.displayHint()
             if self.config['horizon_active']:
@@ -167,6 +171,7 @@ class osdWidget(QtWidgets.QWidget):
         painter.drawPath(path)
 
         painter.end()
+
 
     def drawArtificialHorizont(self,centerX,centerY, width, painter):
         pen = QtGui.QPen()

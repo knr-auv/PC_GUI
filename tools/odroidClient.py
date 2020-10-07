@@ -15,7 +15,7 @@ class odroidClientSignals(QtCore.QObject):
     connectionTerminated = QtCore.pyqtSignal()
     connectionRefused = QtCore.pyqtSignal()
     clientConnected = QtCore.pyqtSignal()
-    receivedAutonomyMsg = QtCore.pyqtSignal(object)
+
 
 class parser():
     def parse(self, data):

@@ -36,6 +36,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.controlSettings.escapeClicked.connect(self.controlCamera.exitFullScreen)
         self.controlSettings.threadpool = self.threadpool
         self.controlSettings.osdSettings.setWidget(self.controlCamera)
+        self.controlSettings.autonomy_widget.setOsdWidget(self.controlCamera)
 
     def updateWidgets(self):
         self.odroidClient.signals.armed.connect(self.controlSettings.armed)
@@ -45,7 +46,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.odroidClient.signals.receivedBoatData.connect(self.boatData.update)
         self.odroidClient.signals.receivedIMUData.connect(self.IMUGraph.update)
         self.odroidClient.signals.receivedIMUData.connect(self.controlCamera.storeData)
-        self.odroidClient.signals.receivedAutonomyMsg.connect(self.controlSettings.autonomy_widget.updateLog)
+    
 
     def sendData(self):
         self.controlSettings.armSignal.connect(lambda arg: self.odroidClient.arm(arg))
@@ -61,7 +62,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.odroidClient.signals.receivedPID.disconnect()
         self.odroidClient.signals.receivedMotors.disconnect()
         self.odroidClient.signals.receivedBoatData.disconnect()
-        self.odroidClient.signals.receivedAutonomyMsg.disconnect()
         self.pidSetup.request_pid.disconnect()
         self.pidSetup.send_pid.disconnect()
         self.boatData.sendData.disconnect()
