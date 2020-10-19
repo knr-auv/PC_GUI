@@ -47,7 +47,8 @@ class autonomyWidget(QtWidgets.QWidget,Ui_autonomy):
         painter.setFont(font)
         for i in detections:
             print(i)
-            name, accuracy, pos = i
+
+            name,accuracy,dist, pos = i
             dist =0
             x,y,w,h = pos
             text = name+" "+accuracy+" "+"{:.2f} m".format(dist)
